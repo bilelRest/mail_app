@@ -156,7 +156,7 @@ public class Admin {
     }
     @PostMapping(value = "/sendMail")
     public String sendMail(Model model,@ModelAttribute(value ="mailDetails" )MailDetails mailDetails){
-        System.out.println(mailDetails);
+        System.out.println("User found"+mailDetails);
         emailController.sendEmail(mailDetails.to,mailDetails.subject,mailDetails.message,"bilel@apirest.tech","123456");
         return "redirect:/new";
     }
