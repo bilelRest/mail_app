@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="template">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbox</title>
+    <link rel="stylesheet" href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css">
+    <script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="/webjars/bootstrap-icons/1.10.5/font/bootstrap-icons.css"></head>
+<body>
+<div layout:fragment="content1" class="container my-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0" th:utext="${mail.sender}"></h5>
+                <span class="badge bg-light text-primary" th:utext="${mail.date}"></span>
+            </div>
+        </div>
+        <div class="card-body">
+            <h4 class="card-title" th:text="${mail.subject}"></h4>
+
+            <div th:utext="${mail.body}"></div>
+
+        </div>
+        <div class="card-footer text-end">
+            <a href="#" class="btn btn-outline-primary btn-sm">Répondre</a>
+            <a href="#" class="btn btn-outline-danger btn-sm">Supprimer</a>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS Bundle with Popper -->
+</body>
+</html>

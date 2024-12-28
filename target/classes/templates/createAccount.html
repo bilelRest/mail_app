@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Account</title>
+    <link rel="stylesheet" href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css">
+    <script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="/webjars/bootstrap-icons/1.10.5/font/bootstrap-icons.css">
+</head>
+<body>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-center bg-primary text-white">
+                    <h4>Créer un compte email</h4>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/createMail}" method="POST" onsubmit="return ChekFrom()">
+                        <!-- Nom complet -->
+                        <div class="mb-3">
+                            <label for="realname" class="form-label">Nom complet</label>
+                            <input type="text" class="form-control" id="realname" name="realname" th:value="${name}" placeholder="Entrez votre nom complet" required>
+                        </div>
+
+                        <!-- Adresse email -->
+                        <div class="mb-3" >
+                            <div >
+                            <label  class="form-label">Nom d'utilisateur</label></div>
+                            <div style="display:inline-flex" >
+                                <input type="text" th:class="${exist} ? 'form-control is-invalid' : 'form-control'"
+                                       th:value="${us}" id="userid" name="userid"
+                                       placeholder="Nom d'utilisateur" required>
+                                <div th:if="${exist}" class="invalid-feedback">
+                                    Ce nom d'utilisateur existe déjà. Veuillez en choisir un autre.
+                                </div>
+                            <input type="text" class="form-control" value="@apirest.tech" readonly >
+                            </div>
+                            </div>
+
+                        <!-- Mot de passe -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mot de passe</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Entrez un mot de passe" required>
+                        </div>
+
+                        <!-- Confirmation du mot de passe -->
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirmez le mot de passe</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirmez votre mot de passe" required>
+                        </div>
+
+                        <!-- Bouton de soumission -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Créer un compte</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function ChekFrom() {
+        if (chekPass() && chekSpecial() && chekSpecialNom()) {
+            alert("Conditions vérifiées");
+            return true; // Soumettre le formulaire si tout est valide
+        } else {
+
+            return false; // Empêcher la soumission si une condition échoue
+        }
+    }
+
+    function chekPass() {
+        var pas = document.getElementById("password").value;
+        var confirm = document.getElementById("confirmPassword").value;
+        if (pas === confirm) {
+            return true;
+        } else {
+            alert("Les mots de passe ne correspondent pas !");
+            return false;
+        }
+    }
+
+    function chekSpecial() {
+        var log1 = document.getElementById("userid");
+        var log = document.getElementById("userid").value;
+        const regexUsername = /^[a-zA-Z0-9_-]{3,20}$/;
+        if (!regexUsername.test(log)) {
+            log1.classList.add("is-invalid"); // Ajoute la classe is-invalid pour un champ invalide
+            log1.classList.remove("is-valid");
+            return false;
+        } else {
+            log1.classList.add("is-valid"); // Ajoute la classe is-invalid pour un champ invalide
+            log1.classList.remove("is-invalid");            return true;
+        }
+    }
+
+    function chekSpecialNom() {
+        var real1 = document.getElementById("realname");
+        var real = document.getElementById("realname").value;
+        var regex = /^[a-zA-Z\s]+$/;
+        if (!regex.test(real)) {
+            real1.classList.add("is-invalid"); // Ajoute la classe is-invalid pour un champ invalide
+            real1.classList.remove("is-valid");
+            return false;
+        } else {
+            real1.classList.add("is-valid"); // Ajoute la classe is-invalid pour un champ invalide
+            real1.classList.remove("is-invalid");            return true;
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Sidebar</title>
+    <link rel="stylesheet" href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css">
+    <script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .sidebar {
+            width: 300px;
+            background-color: #f7f9fc;
+            height: 100vh;
+            padding: 20px;
+
+        }
+        .sidebar h4 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        .sidebar .btn-new-message {
+            background-color: #e8f0fe;
+            border: none;
+            width: 100%;
+            text-align: left;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .sidebar .nav-link {
+            color: #202124;
+            font-weight: 500;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #e8f0fe;
+            border-radius: 5px;
+        }
+        .sidebar .nav-item.active .nav-link {
+            background-color: #d2e3fc;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .sidebar .section-title {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: #5f6368;
+        }
+
+    </style>
+</head>
+<body>
+<div class="container-fluid d-flex">
+<div class="d-flex">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="d-flex align-items-center mb-4">
+            <img src="/mailApirestTech.png" alt="mail.apirest.tech" width="200" height="100">
+        </div>
+
+        <a class="btn btn-new-message mb-4" th:href="@{/new}">
+            <i class="bi bi-pencil"></i> Nouveau message
+        </a>
+
+        <ul class="nav flex-column">
+            <li class="nav-item active">
+                <a class="nav-link d-flex justify-content-between align-items-center" href="#">
+                    <span>Boîte de réception</span>
+                    <span class="badge bg-primary"><h6 th:text="${size}"></h6></span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="bi bi-star"></i> Messages suivis
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="bi bi-clock"></i> En attente
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="bi bi-send"></i> Messages envoyés
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="bi bi-file-earmark"></i> Brouillons <span class="badge bg-secondary">3</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="bi bi-chevron-down"></i> Plus
+                </a>
+            </li>
+        </ul>
+
+        <div class="section-title">Libellés</div>
+        <a href="#" class="nav-link">
+            <i class="bi bi-plus"></i> Ajouter un libellé
+        </a>
+    </div>
+
+</div>
+<div class="container-fluid">
+    <section layout:fragment="content1">
+        <!-- Contenu de la section -->
+    </section>
+</div>
+</div>
+</body>
+</html>

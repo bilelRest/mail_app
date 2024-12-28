@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>home</title>
+    <link rel="stylesheet" href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css">
+    <script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="/webjars/bootstrap-icons/1.10.5/font/bootstrap-icons.css">
+</head>
+<body>
+<div class="container col-md-3 mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-light" style="align-content:center">
+            <h3>Connection</h3>
+        </div>
+        <div class="card-body">
+            <form th:action="@{/login}" method="post">
+                <!-- Login input -->
+                <div data-mdb-input-init class="form-outline mb-4">
+                    <input type="text" name="username" class="form-control" />
+                    <label class="form-label">Login</label>
+                </div>
+
+                <!-- Password input -->
+                <div data-mdb-input-init class="form-outline mb-4">
+                    <input type="password"  name="password" class="form-control" />
+                    <label class="form-label">Mot De Passe</label>
+                </div>
+
+                <!-- Submit button -->
+                <button data-mdb-ripple-init type="submit" class="btn btn-primary btn-block">Connecter</button>
+
+                <!-- Display error message -->
+                <div th:if="${errorMessage}" class="alert alert-danger mt-3" role="alert">
+                    <span th:text="${errorMessage}"></span>
+                </div>
+            </form>
+
+           <!-- <a href="/ForgotPassword">Mot De Passe Oublié</a><br><br>-->
+            <a th:href="@{/CreateAccount}">Créer un nouveau compte</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

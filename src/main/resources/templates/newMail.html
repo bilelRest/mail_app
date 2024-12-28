@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+layout:decorate="template">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div layout:fragment="content1" class="container my-2">
+    <div class="container my-4">
+        <form method="post" th:action="@{/sendMail}">
+            <div class="mb-3">
+                <label for="to" class="form-label">Destinataire</label>
+                <input type="email" name="to" th:value="${mailDetails.to}" class="form-control" id="to" placeholder="Entrez l'email du destinataire" required>
+            </div>
+            <div class="mb-3">
+                <label for="subject" class="form-label">Objet</label>
+                <input name="subject" type="text" th:value="${mailDetails.subject}" class="form-control" id="subject" placeholder="Entrez l'objet de l'email" required>
+            </div>
+            <div class="mb-3">
+                <label for="message"  class="form-label">Texte de l'email</label>
+                <textarea class="form-control" name="message" th:value="${mailDetails.message}" id="message" rows="5" placeholder="Rédigez votre message ici" required></textarea>
+            </div>
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary">Envoyer</button>
+                <button type="reset" class="btn btn-secondary">Annuler</button>
+            </div>
+        </form>
+    </div>
+    </div>
+
+</body>
+</html>
