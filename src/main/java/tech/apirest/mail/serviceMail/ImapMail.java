@@ -83,50 +83,70 @@ public class ImapMail {
         return mailEntityList;
     }
 
+
+
     public String getTextFromMessage(Message message) throws MessagingException, IOException {
-        if (message.isMimeType("text/plain")) {
+        if (message.isMimeType("text/html")) {
+            // Retourne directement le contenu si le message est HTML
+            return message.getContent().toString();
+        } else if (message.isMimeType("text/plain")) {
+            // Retourne le texte brut si HTML n'est pas disponible
             return message.getContent().toString();
         } else if (message.isMimeType("multipart/*")) {
+            // Traite les messages multipart
             MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
             return getTextFromMimeMultipart(mimeMultipart);
-
-
         }
         return "";
     }
+
     private String getTextFromMimeMultipart(MimeMultipart mimeMultipart) throws MessagingException, IOException {
-        StringBuilder result = new StringBuilder();
+        String htmlContent = null; // Priorité au HTML
+        String plainTextContent = null; // Texte brut comme alternative
+        StringBuilder attachmentsInfo = new StringBuilder(); // Informations sur les pièces jointes
+
         int count = mimeMultipart.getCount();
         for (int i = 0; i < count; i++) {
             BodyPart bodyPart = mimeMultipart.getBodyPart(i);
 
-            // Vérifier si la partie est du texte brut
-            if (bodyPart.isMimeType("text/plain")) {
-                result.append(bodyPart.getContent());
-
-                // Vérifier si la partie est du HTML
-            } else if (bodyPart.isMimeType("text/html")) {
-                result.append(bodyPart.getContent());
-
-                // Vérifier si la partie est une pièce jointe (fichier)
-            } else if (bodyPart.getDisposition() != null && bodyPart.getDisposition().equals(Part.ATTACHMENT)) {
-                // Extraire les informations de la pièce jointe
+            if (bodyPart.isMimeType("text/html")) {
+                // Priorise le HTML
+                htmlContent = bodyPart.getContent().toString();
+            } else if (bodyPart.isMimeType("text/plain")) {
+                // Sauvegarde le texte brut si HTML n’est pas trouvé
+                if (plainTextContent == null) {
+                    plainTextContent = bodyPart.getContent().toString();
+                }
+            } else if (bodyPart.getDisposition() != null && bodyPart.getDisposition().equalsIgnoreCase(Part.ATTACHMENT)) {
+                // Traite les pièces jointes
                 String fileName = bodyPart.getFileName();
                 String contentType = bodyPart.getContentType();
-                System.out.println("Pièce jointe trouvée : " + fileName + " (" + contentType + ")");
+                attachmentsInfo.append("Pièce jointe trouvée : ").append(fileName)
+                        .append(" (").append(contentType).append(")\n");
 
-                // Vous pouvez maintenant décider de stocker cette pièce jointe ou de la traiter.
-                // Par exemple, sauvegarder le fichier sur le serveur.
-
-                // Pour récupérer le contenu du fichier (comme un flux binaire), vous pouvez faire :
+                // Sauvegarde ou traitement de la pièce jointe
                 InputStream inputStream = bodyPart.getInputStream();
-                // saveAttachment(inputStream, fileName);
+                saveAttachment(inputStream, fileName); // Implémentez cette méthode selon vos besoins
             } else if (bodyPart.getContent() instanceof MimeMultipart) {
-                // Gérer les parties multipart imbriquées
-                result.append(getTextFromMimeMultipart((MimeMultipart) bodyPart.getContent()));
+                // Traite les parties multipart imbriquées
+                String nestedContent = getTextFromMimeMultipart((MimeMultipart) bodyPart.getContent());
+                if (nestedContent != null) {
+                    htmlContent = nestedContent; // Priorité HTML dans les parties imbriquées
+                }
             }
         }
-        return result.toString();
+
+        // Combine le contenu des pièces jointes avec le texte principal
+        String mainContent = htmlContent != null ? htmlContent : plainTextContent != null ? plainTextContent : "";
+        return mainContent + (attachmentsInfo.length() > 0 ? "\n\n" + attachmentsInfo.toString() : "");
+    }
+
+    // Exemple de méthode pour sauvegarder les pièces jointes
+    private void saveAttachment(InputStream inputStream, String fileName) throws IOException {
+        java.nio.file.Path filePath = java.nio.file.Paths.get("attachments/" + fileName);
+        java.nio.file.Files.createDirectories(filePath.getParent());
+        java.nio.file.Files.copy(inputStream, filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        System.out.println("Pièce jointe sauvegardée : " + filePath);
     }
 
     //    private void saveAttachment(InputStream inputStream, String fileName) throws IOException {
