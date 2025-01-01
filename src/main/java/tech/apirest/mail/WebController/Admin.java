@@ -53,6 +53,7 @@ public class Admin {
 
     @GetMapping(path = "/login")
     public String loginWeb(Model model) {
+
         LogInfo logInfo = new LogInfo("", "");
         model.addAttribute("log", logInfo);
         model.addAttribute("hello", "hello world");
@@ -118,6 +119,8 @@ public class Admin {
 
     @GetMapping(value = "/accueilMail")
     public String accueilMail(Model model) throws MessagingException, IOException {
+        System.out.println("tt trouvé : "+findLogged().get().getTt());
+        model.addAttribute("user",findLogged().get());
 
         List<MailEntity> mailEntityListImap=imapMail.readEmails(findLogged().get().getUserid(),findLogged().get().getTt());
         if (!mailEntityListImap.isEmpty()){
@@ -150,6 +153,7 @@ public class Admin {
     }
     @GetMapping(value = "/new")
     public String newMail(Model model){
+        model.addAttribute("user",findLogged().get());
         MailDetails mailDetails=new MailDetails();
         model.addAttribute("mailDetails",mailDetails);
         return "newMail";
@@ -157,11 +161,13 @@ public class Admin {
     @PostMapping(value = "/sendMail")
     public String sendMail(Model model,@ModelAttribute(value ="mailDetails" )MailDetails mailDetails){
         System.out.println("User found : "+mailDetails);
-        emailController.sendEmail(mailDetails.to,mailDetails.subject,mailDetails.message,"bilel@apirest.tech","123456");
+        System.out.println("tt trouvé : "+findLogged().get().getTt());
+      emailController.sendEmail(mailDetails.to,mailDetails.subject,mailDetails.message,findLogged().get().getUserid(),findLogged().get().getTt());
         return "redirect:/new";
     }
     @GetMapping(value = "/inbox/{id}")
     public String inboxById(Model model, @PathVariable(value = "id" )Long id) throws MessagingException {
+        model.addAttribute("user",findLogged().get());
       Optional<  MailEntity> mail=mailRepo.findById(id);
         if (mail!=null){
             mail.get().setIsRead(true);

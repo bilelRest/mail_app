@@ -20,6 +20,7 @@ public class EmailController {
     public Boolean sendEmail( String to,  String subject,  String text,String log,String pass) {
 try {
     emailService.sendSimpleEmail(to, subject, text,log,pass);
+    System.out.println("to : "+to+" subjet : "+subject+" log : "+log+" pass : "+pass);
     System.out.println("succes d'envoie à : " + to);
 
     return true;

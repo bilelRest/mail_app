@@ -26,6 +26,7 @@ public class MailEntity {
     @Column(columnDefinition = "text")
     private String body;
     private Boolean isRead=false;
+    private String destinataire;
     private String joinedName;
     private String pathJoined;
     @Enumerated(EnumType.STRING)

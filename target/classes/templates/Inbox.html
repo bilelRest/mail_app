@@ -19,7 +19,7 @@
             </div>
         </div>
         <div class="card-body">
-            <h4 class="card-title" th:text="${mail.subject}"></h4>
+            <h4 class="card-title" th:utext="${mail.subject}"></h4>
 
             <div th:utext="${mail.body}"></div>
 
