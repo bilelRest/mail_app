@@ -20,8 +20,13 @@ import tech.apirest.mail.serviceMail.EmailController;
 import tech.apirest.mail.serviceMail.ImapMail;
 
 import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,21 +57,16 @@ public class Admin {
     }
 
     @GetMapping(path = "/login")
-    public String loginWeb(Model model) {
+    public String loginWeb(Model model ,@RequestParam(value = "error",defaultValue = "")String error ) {
 
         LogInfo logInfo = new LogInfo("", "");
         model.addAttribute("log", logInfo);
-        model.addAttribute("hello", "hello world");
+        boolean err= error.equals("true");
+        model.addAttribute("error", err);
         return "login";
     }
 
-    @PostMapping(path = "/login")
-    public String logMailUser(Authentication authentication) {
-        System.out.println("Acceec a l url");
 
-
-        return "login";
-    }
     @GetMapping(path = "/CreateAccount")
     public  String CreateAccount(Model model,
                                  @RequestParam(value = "us",defaultValue = "")String us,
@@ -122,6 +122,7 @@ public class Admin {
         System.out.println("tt trouvé : "+findLogged().get().getTt());
         model.addAttribute("user",findLogged().get());
 
+
         List<MailEntity> mailEntityListImap=imapMail.readEmails(findLogged().get().getUserid(),findLogged().get().getTt());
         if (!mailEntityListImap.isEmpty()){
             List<MailEntity> mailEntityList1=new ArrayList<>();
@@ -133,18 +134,22 @@ public class Admin {
             }
             mailRepo.saveAll(mailEntityList1);
         }
-        List<MailEntity> mailEntityList=mailRepo.findAllByMailUser(findLogged().get());
+        List<MailEntity> mailEntityList2=mailRepo.findAllByMailUser(findLogged().get());
+        List<MailEntity> mailEntityList=new ArrayList<>();
+        for (MailEntity mail:mailEntityList2){
+            if (mail.getType()==EmailType.RECU){
+                mailEntityList.add(mail);
+            }
+        }
         System.out.println("Taille de la table spring : "+mailEntityList.size());
         System.out.println( " taille du tableau : " +mailEntityListImap.size());
         int nombreTotal=mailEntityList.size();
-        int nombreNonLu=0;
-        for (MailEntity mail:mailEntityList){
-            if (!mail.getIsRead()){
-                nombreNonLu=nombreNonLu +1;
-            }
-        }
-        model.addAttribute("total",nombreTotal);
+
+        int nombreNonLu= mailRepo.countUnreadEmails(findLogged().get());
         model.addAttribute("size",nombreNonLu);
+
+        System.out.println("Nombre non lu = "+nombreNonLu);
+        model.addAttribute("total",nombreTotal);
         model.addAttribute("messages", mailEntityList.stream()
                 .sorted((m1, m2) -> Long.compare(m2.getId(), m1.getId()))
                 .collect(Collectors.toList()));
@@ -153,20 +158,106 @@ public class Admin {
     }
     @GetMapping(value = "/new")
     public String newMail(Model model){
+        int nombreNonLu= mailRepo.countUnreadEmails(findLogged().get());
+        model.addAttribute("size",nombreNonLu);
         model.addAttribute("user",findLogged().get());
         MailDetails mailDetails=new MailDetails();
         model.addAttribute("mailDetails",mailDetails);
         return "newMail";
     }
+    @GetMapping(value = "/sent")
+    public String sentEmail(Model model){
+        List<MailEntity> mailEntityList2=mailRepo.findAllByMailUser(findLogged().get());
+        List<MailEntity> mailEntityList=new ArrayList<>();
+        for (MailEntity mail:mailEntityList2){
+            if (mail.getType()==EmailType.ENVOYEE){
+                mailEntityList.add(mail);
+            }
+        }
+        int nombreNonLu= mailRepo.countUnreadEmails(findLogged().get());
+        model.addAttribute("size",nombreNonLu);
+        model.addAttribute("user",findLogged().get());
+        model.addAttribute("messages", mailEntityList.stream()
+                .sorted((m1, m2) -> Long.compare(m2.getId(), m1.getId()))
+                .collect(Collectors.toList()));
+//        model.addAttribute("listMail",mailEntityList);
+
+        return "sent";
+    }
+    @GetMapping(value = "/deconnect")
+    public String logoutMail(Model model, HttpSession session, HttpServletRequest request){
+        request.getSession().invalidate();
+        SecurityContextHolder.clearContext();
+        return "redirect:/login";
+    }
+    @GetMapping(value = "/draft")
+    public String draftMail(Model model){
+        List<MailEntity> mailEntityList2=mailRepo.findAllByMailUser(findLogged().get());
+        List<MailEntity> mailEntityList=new ArrayList<>();
+        for (MailEntity mail:mailEntityList2){
+            if (mail.getType()==EmailType.BROUILLON){
+                mailEntityList.add(mail);
+            }
+        }
+        int nombreNonLu= mailRepo.countUnreadEmails(findLogged().get());
+        model.addAttribute("size",nombreNonLu);
+        model.addAttribute("user",findLogged().get());
+        model.addAttribute("messages", mailEntityList.stream()
+                .sorted((m1, m2) -> Long.compare(m2.getId(), m1.getId()))
+                .collect(Collectors.toList()));
+        return "draft";
+    }
     @PostMapping(value = "/sendMail")
-    public String sendMail(Model model,@ModelAttribute(value ="mailDetails" )MailDetails mailDetails){
+    public String sendMail(Model model,@ModelAttribute(value ="mailDetails" )MailDetails mailDetails,@RequestParam(value = "draft",defaultValue = "")String draft){
         System.out.println("User found : "+mailDetails);
         System.out.println("tt trouvé : "+findLogged().get().getTt());
-      emailController.sendEmail(mailDetails.to,mailDetails.subject,mailDetails.message,findLogged().get().getUserid(),findLogged().get().getTt());
-        return "redirect:/new";
+        Boolean isDraft=draft.equals("true");
+        System.out.println("Valeur de draft  "+draft);
+        Boolean sent=false;
+if (!isDraft) {
+     if(emailController.sendEmail(mailDetails.to, mailDetails.subject, mailDetails.message, findLogged().get().getUserid(), findLogged().get().getTt())){
+         sent=true;
+     }
+}
+if(sent) {
+              MailEntity mail = new MailEntity();
+              mail.setSender(findLogged().get().getUserid());
+              mail.setDate(LocalDateTime.now().toString());
+              mail.setIsRead(true);
+              mail.setBody(mailDetails.message);
+              mail.setSubject(mailDetails.subject);
+              mail.setDestinataire(mailDetails.to);
+              mail.setType(EmailType.ENVOYEE);
+              mail.setJoinedName(mailDetails.jointe);
+              mail.setMailUser(findLogged().get());
+              mail.setUniqueId(mailDetails.to + LocalDateTime.now().toString());
+              System.out.println("Email enregistré" + mail);
+              mailRepo.save(mail);
+              return "redirect:/accueilMail";
+          }else {
+              MailEntity mail=new MailEntity();
+              mail.setSender(findLogged().get().getUserid());
+              mail.setDate(LocalDateTime.now().toString());
+              mail.setIsRead(true);
+              mail.setBody(mailDetails.message);
+              mail.setSubject(mailDetails.subject);
+              mail.setDestinataire(mailDetails.to);
+              mail.setType(EmailType.BROUILLON);
+              mail.setJoinedName(mailDetails.jointe);
+              mail.setMailUser(findLogged().get());
+              mail.setUniqueId(mailDetails.to+ LocalDateTime.now().toString());
+              System.out.println("Email enregistré"+mail);
+              mailRepo.save(mail);
+              return "redirect:/new";
+          }
+
+
+
     }
     @GetMapping(value = "/inbox/{id}")
     public String inboxById(Model model, @PathVariable(value = "id" )Long id) throws MessagingException {
+        int nombreNonLu= mailRepo.countUnreadEmails(findLogged().get());
+        model.addAttribute("size",nombreNonLu);
         model.addAttribute("user",findLogged().get());
       Optional<  MailEntity> mail=mailRepo.findById(id);
         if (mail!=null){
@@ -192,5 +283,6 @@ public class Admin {
         private String to;
         private String subject;
         private String message;
+        private String jointe="";
     }
 }

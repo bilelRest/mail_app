@@ -1,14 +1,37 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-layout:decorate="template">
+      layout:decorate="template">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Messages envoyés</title>
+    <script>
+        // Fonction pour synchroniser les valeurs entre deux formulaires
+        document.addEventListener('DOMContentLoaded', () => {
+            const fieldsToBind = ['to', 'subject', 'message']; // Champs à synchroniser
+
+            fieldsToBind.forEach(fieldName => {
+                const sourceField = document.getElementById(fieldName);
+                const targetField = document.getElementById(`${fieldName}1`);
+
+                if (sourceField && targetField) {
+                    // Synchronisation dans les deux directions
+                    sourceField.addEventListener('input', () => {
+                        targetField.value = sourceField.value;
+                    });
+
+                    targetField.addEventListener('input', () => {
+                        sourceField.value = targetField.value;
+                    });
+                }
+            });
+        });
+    </script>
 </head>
 <body>
 <div layout:fragment="content1" class="container my-2">
     <div class="container my-4">
+        <!-- Premier formulaire -->
         <form method="post" th:action="@{/sendMail}">
             <div class="mb-3">
                 <label for="to" class="form-label">Destinataire</label>
@@ -19,16 +42,30 @@ layout:decorate="template">
                 <input name="subject" type="text" th:value="${mailDetails.subject}" class="form-control" id="subject" placeholder="Entrez l'objet de l'email" required>
             </div>
             <div class="mb-3">
-                <label for="message"  class="form-label">Texte de l'email</label>
+                <label for="message" class="form-label">Texte de l'email</label>
                 <textarea class="form-control" name="message" th:value="${mailDetails.message}" id="message" rows="5" placeholder="Rédigez votre message ici" required></textarea>
             </div>
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-primary">Envoyer</button>
-                <button type="reset" class="btn btn-secondary">Annuler</button>
             </div>
         </form>
-    </div>
-    </div>
 
+<!--        &lt;!&ndash; Deuxième formulaire &ndash;&gt;-->
+<!--        <form method="post" th:action="@{/sendMail?draft=true}">-->
+<!--            <div class="mb-3">-->
+<!--                <input type="email" name="to1" hidden="hidden" th:value="${mailDetails.to}" id="to1">-->
+<!--            </div>-->
+<!--            <div class="mb-3">-->
+<!--                <input name="subject1" hidden="hidden" type="text" th:value="${mailDetails.subject}" id="subject1">-->
+<!--            </div>-->
+<!--            <div class="mb-3">-->
+<!--                <textarea class="form-control" hidden="hidden" name="message1" th:value="${mailDetails.message}" id="message1"></textarea>-->
+<!--            </div>-->
+<!--            <div class="d-flex justify-content-between">-->
+<!--                <button type="submit" class="btn btn-primary">Annuler</button>-->
+<!--            </div>-->
+<!--        </form>-->
+    </div>
+</div>
 </body>
 </html>

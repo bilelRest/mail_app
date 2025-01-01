@@ -54,7 +54,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()
                 .loginPage("/login") // Page de connexion personnalisée
                 .defaultSuccessUrl("/accueilMail", true) // Redirection après connexion réussie
-                .failureUrl("/home?error=true") // Redirection après échec
+                .failureUrl("/login?error=true") // Redirection après échec
                 .permitAll()
                 .and()
                 .logout()
