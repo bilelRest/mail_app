@@ -3,43 +3,53 @@
       layout:decorate="template">
 <head>
     <meta charset="UTF-8">
-    <title>Boite de réception</title>
+    <title>Boîte de réception</title>
+    <link rel="stylesheet" href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css">
+    <script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="/webjars/bootstrap-icons/1.10.5/font/bootstrap-icons.css">
 </head>
 <body>
-<div layout:fragment="content1" style="display:flex" class="container my-2">
-    <div class="container d-block" >
-  <div>  <h1>Boîte de réception</h1></div>
-        <div style="width: 100%" th:if="${messages != null}">
-           <div class="card" style="margin-top: 5px; width: 100%" th:each="message,ind : ${messages}">
-
-               <a th:href="@{/inbox/}+${message.id}" th:class="${message.isRead}?'btn btn-outline-success':'btn btn-outline-primary'">
-                   <div class="card-header " style="display: flex; align-items: center; padding: 10px;">
-
-                    <!-- Affichage de l'expéditeur -->
-                    <div style="flex: 1; padding: 5px; white-space: nowrap;">
-                        <span th:text="${message.sender}"></span>
-
-                    </div>
-
-                    <!-- Affichage du sujet -->
-                    <div style="flex: 2; padding: 5px; white-space: nowrap;">
-                        <span th:text="${message.subject}"></span>
-                    </div>
-
-                    <!-- Affichage de la date d'envoi -->
-                    <div style="flex: 1; padding: 5px; white-space: nowrap;">
-                        <span th:text="${message.date}"></span>
-                    </div>
-
+<div layout:fragment="content1" class="container my-2">
+    <div>
+        <h1>Boîte de réception</h1>
+    </div>
+    <div th:if="${messages == null || messages.isEmpty()}" class="alert alert-info">
+        Aucun message dans la boîte de réception.
+    </div>
+    <div class="container-fluid" style="width: 100%" th:if="${messages != null}">
+        <div class="card" style="margin-top: 5px; width: 100%" th:each="message : ${messages}">
+            <div th:class="${message.isRead}?'card-header bg-light  d-flex align-items-center':'card-header bg-primary text-light  d-flex align-items-center'" style="padding: 10px;"
+                 onmouseover="this.querySelector('.bouton').style.display='block'"
+                 onmouseleave="this.querySelector('.bouton').style.display='none'"
+            >
+                <div style="flex: 1; padding: 5px; white-space: nowrap;">
+                    <span th:text="${message.sender}"></span>
                 </div>
-    </a>
-
+                <div style="flex: 2; padding: 5px; white-space: nowrap;">
+                    <span th:text="${message.subject}"></span>
+                </div>
+                <div style="flex: 1; padding: 5px; white-space: nowrap;">
+                    <span th:text="${message.date}"></span>
+                </div>
+                <div class="bouton" style="padding: 5px; display:none;">
+                    <a class="btn btn-success" title="Ouvrir" th:href="@{/inbox/{id}(id=${message.id})}">
+                        <i class="bi bi-book"></i>
+                    </a>
+                    <a th:class="${message.isRead?'btn btn-secondary':'btn btn-secondary disabled'}" title="Marquer comme non lu" th:href="@{/setNonLu/{id}(id=${message.id})}">
+                         <i class="bi bi-app-indicator "></i>
+                    </a>
+                    <a onclick="return confirm('Etes vous sur de vouloir supprimer ce message ?')" class="btn btn-danger" title="Supprimer le message" th:href="@{/delete/{id}(id=${message.id})}">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
             </div>
-
         </div>
-
-
-
-    </div></div>
+    </div>
+</div>
+<script>
+    function confirmDelete(){
+        return;
+    }
+</script>
 </body>
 </html>

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import tech.apirest.mail.Entity.*;
+import tech.apirest.mail.Repo.MailRepo;
 import tech.apirest.mail.Repo.TransportRepo;
 import tech.apirest.mail.Repo.UsersRepo;
 import tech.apirest.mail.Repo.VirtualRepo;
@@ -21,10 +22,12 @@ import tech.apirest.mail.Services.VirtualInterfaceImpl;
 import javax.mail.Message;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Scanner;
 
 @SpringBootApplication
@@ -35,6 +38,8 @@ public class MailApplication {
 	UsersInterfaceImpl usersInterface;
 	@Autowired
 	VirtualInterfaceImpl virtualInterface;
+	@Autowired
+	MailRepo mailRepo;
 //	@Autowired
 //	ImapMail imapMail;
 	@Enumerated(EnumType.STRING)
@@ -67,6 +72,20 @@ public class MailApplication {
 	CommandLineRunner start() {
 		return args -> {
 			System.out.println("Commande runner marche");
+//		Users users= usersRepo.findByUserid("nissen@apirest.tech");
+//
+//			List<MailEntity> list=mailRepo.findAllByMailUser(users);
+//			for (MailEntity mail:list){
+//				if (mail.getType()==EmailType.DELETED){
+//	mail.setType(EmailType.RECU);
+//					mailRepo.save(mail);
+//					System.out.println(" mail trouver "+mail);
+//				}
+
+//				System.out.println("Editer non supprimé");
+
+//			}
+
 
 //			List<Users> list=usersRepo.findAll();
 //			for (Users users:list){

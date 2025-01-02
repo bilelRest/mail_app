@@ -3,16 +3,16 @@
       layout:decorate="template">
 <head>
     <meta charset="UTF-8">
-    <title>Brouillons</title>
+    <title>Corbeille</title>
 </head>
 <body>
 <div layout:fragment="content1" style="display:flex" class="container my-2">
     <div class="container d-block" >
-        <div>  <h1>Brouillons</h1></div>
+        <div>  <h1>Messages Supprimer</h1></div>
         <div style="width: 100%" th:if="${messages != null}">
             <div class="card" style="margin-top: 5px; width: 100%" th:each="message,ind : ${messages}">
 
-                <a th:href="@{/new?id=}+${message.id}" th:class="${message.isRead}?'btn btn-outline-success':'btn btn-outline-primary'">
+                <a th:href="@{/inbox/}+${message.id}" th:class="${message.isRead}?'btn btn-outline-success':'btn btn-outline-primary'">
                     <div class="card-header " style="display: flex; align-items: center; padding: 10px;">
 
                         <!-- Affichage de l'expéditeur -->
@@ -29,9 +29,6 @@
                         <!-- Affichage de la date d'envoi -->
                         <div style="flex: 1; padding: 5px; white-space: nowrap;">
                             <span th:text="${message.date}"></span>
-                        </div>
-                        <div hidden="hidden">
-                            <span th:text="${message.body}"></span>
                         </div>
 
                     </div>
