@@ -22,6 +22,17 @@
             <h4 class="card-title" th:utext="${mail.subject}"></h4>
 
             <div th:utext="${mail.body}"></div>
+            <div class="attachments">
+                <div th:if="${mail.joinedName != null and mail.pathJoined != null}">
+                    <p>Pièces jointes :</p>
+                    <ul>
+                        <li>
+                            <a th:href=" ${mail.pathJoined}" th:text="${mail.joinedName}" target="_blank"></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
 
         </div>
         <div class="card-footer text-end">
