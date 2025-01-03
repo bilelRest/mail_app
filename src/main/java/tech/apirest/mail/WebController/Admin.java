@@ -126,17 +126,17 @@ public class Admin {
         model.addAttribute("user", findLogged().get());
 
 
-        // List<MailEntity> mailEntityListImap=imapMail.readEmails(findLogged().get().getUserid(),findLogged().get().getTt());
-//        if (!mailEntityListImap.isEmpty()){
-//            List<MailEntity> mailEntityList1=new ArrayList<>();
-//            Set<MailEntity> existingMails = new HashSet<>(mailRepo.findAllByMailUser(findLogged().get()));
-//            for (MailEntity mail : mailEntityListImap) {
-//                if (!existingMails.contains(mail)) {
-//                    mailEntityList1.add(mail);
-//                }
-//            }
-//            mailRepo.saveAll(mailEntityList1);
-//        }
+         List<MailEntity> mailEntityListImap=imapMail.readEmails(findLogged().get().getUserid(),findLogged().get().getTt());
+        if (!mailEntityListImap.isEmpty()){
+            List<MailEntity> mailEntityList1=new ArrayList<>();
+            Set<MailEntity> existingMails = new HashSet<>(mailRepo.findAllByMailUser(findLogged().get()));
+            for (MailEntity mail : mailEntityListImap) {
+                if (!existingMails.contains(mail)) {
+                    mailEntityList1.add(mail);
+                }
+            }
+            mailRepo.saveAll(mailEntityList1);
+        }
         List<MailEntity> mailEntityList2 = mailRepo.findAllByMailUser(findLogged().get());
         List<MailEntity> mailEntityList = new ArrayList<>();
         for (MailEntity mail : mailEntityList2) {

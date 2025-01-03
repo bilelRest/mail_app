@@ -5,34 +5,22 @@
 <head>
     <meta charset="UTF-8">
     <title>Messages envoyés</title>
-    <script>
-        // Fonction pour synchroniser les valeurs entre deux formulaires
-        document.addEventListener('DOMContentLoaded', () => {
-            const fieldsToBind = ['to', 'subject', 'message']; // Champs à synchroniser
+    <script defer>
+        function saveAsDraft() {
+            // Modifier la valeur de l'input caché
+            document.getElementById('hid').value = 1;
 
-            fieldsToBind.forEach(fieldName => {
-                const sourceField = document.getElementById(fieldName);
-                const targetField = document.getElementById(`${fieldName}1`);
-
-                if (sourceField && targetField) {
-                    // Synchronisation dans les deux directions
-                    sourceField.addEventListener('input', () => {
-                        targetField.value = sourceField.value;
-                    });
-
-                    targetField.addEventListener('input', () => {
-                        sourceField.value = targetField.value;
-                    });
-                }
-            });
-        });
+            // Soumettre le formulaire
+            document.getElementById('mailForm').submit();
+        }
     </script>
+
 </head>
 <body>
 <div layout:fragment="content1" class="container my-2">
     <div class="container my-4">
         <!-- Premier formulaire -->
-        <form method="post" th:action="@{/sendMail}">
+        <form method="post" th:action="@{/sendMail}" id="mailForm">
             <div class="mb-3">
                 <label for="to" class="form-label">Destinataire</label>
                 <input type="email" name="to" th:value="${mailDetails.to}" class="form-control" id="to" placeholder="Entrez l'email du destinataire" required>
@@ -41,31 +29,26 @@
                 <label for="subject" class="form-label">Objet</label>
                 <input name="subject" type="text" th:value="${mailDetails.subject}" class="form-control" id="subject" placeholder="Entrez l'objet de l'email" required>
             </div>
+            <input name="id" type="text" th:value="${mailDetails.id}" id="id" hidden="hidden">
+
             <div class="mb-3">
                 <label for="message" class="form-label">Texte de l'email</label>
-                <textarea class="form-control" name="message" th:value="${mailDetails.message}" id="message" rows="5" placeholder="Rédigez votre message ici" required></textarea>
+                <textarea class="form-control" name="message" id="message" rows="5" placeholder="Rédigez votre message ici" required>
+    [[${mailDetails.message}]]
+</textarea>
             </div>
+            <input type="hidden" id="hid" name="draft" value="0">
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-primary">Envoyer</button>
             </div>
+            <br><br>
+            <div class="d-flex justify-content-between">
+                <button type="button" onclick="saveAsDraft()" class="btn btn-secondary">Enregistrer comme brouillon</button>
+            </div>
         </form>
-
-<!--        &lt;!&ndash; Deuxième formulaire &ndash;&gt;-->
-<!--        <form method="post" th:action="@{/sendMail?draft=true}">-->
-<!--            <div class="mb-3">-->
-<!--                <input type="email" name="to1" hidden="hidden" th:value="${mailDetails.to}" id="to1">-->
-<!--            </div>-->
-<!--            <div class="mb-3">-->
-<!--                <input name="subject1" hidden="hidden" type="text" th:value="${mailDetails.subject}" id="subject1">-->
-<!--            </div>-->
-<!--            <div class="mb-3">-->
-<!--                <textarea class="form-control" hidden="hidden" name="message1" th:value="${mailDetails.message}" id="message1"></textarea>-->
-<!--            </div>-->
-<!--            <div class="d-flex justify-content-between">-->
-<!--                <button type="submit" class="btn btn-primary">Annuler</button>-->
-<!--            </div>-->
-<!--        </form>-->
     </div>
 </div>
+
+
 </body>
 </html>
