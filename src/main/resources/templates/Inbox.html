@@ -36,8 +36,10 @@
 
         </div>
         <div class="card-footer text-end">
-            <a href="#" class="btn btn-outline-primary btn-sm">Répondre</a>
-            <a href="#" class="btn btn-outline-danger btn-sm">Supprimer</a>
+            <form th:action="@{/deleteFromServer}+'?id='+${mail.id}" method="post">
+                <input hidden="hidden" name="uniqueId" th:value="${mail.id}">
+            <button type="submit" onclick="return confirm('Etes vous sur de vouloir supprimer definitivement ce message : \n Cette operation est irreversible ?')" class="btn btn-outline-primary btn-sm">Supprimer</button></form>
+            <a href="#" class="btn btn-outline-danger btn-sm">Repondre</a>
         </div>
     </div>
 </div>

@@ -29,6 +29,7 @@ public class MailEntity {
     private String destinataire;
     private String joinedName;
     private String pathJoined;
+    private String deleteFtpPath;
     @Enumerated(EnumType.STRING)
     private EmailType type;
     @ManyToOne

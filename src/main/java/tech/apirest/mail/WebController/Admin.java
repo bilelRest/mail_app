@@ -131,7 +131,7 @@ public class Admin {
         model.addAttribute("user", findLogged().get());
 
 
-         List<MailEntity> mailEntityListImap=imapMail.readEmails(findLogged().get().getUserid(),findLogged().get().getTt());
+         List<MailEntity> mailEntityListImap=imapMail.readEmails(findLogged().get().getUserid(),findLogged().get().getTt(),null);
         if (!mailEntityListImap.isEmpty()){
             List<MailEntity> mailEntityList1=new ArrayList<>();
             Set<MailEntity> existingMails = new HashSet<>(mailRepo.findAllByMailUser(findLogged().get()));
@@ -178,6 +178,7 @@ public class Admin {
             mailDetails.setTo(mail.get().getDestinataire());
             mailDetails.setSubject(mail.get().getSubject());
             mailDetails.setPathJointe( mail.get().getPathJoined());
+            mailDetails.setNameJointe(mail.get().getJoinedName());
             mailDetails.setMessage(mail.get().getBody());
             System.out.println("Message corps transmis a new : " + mailDetails.getMessage());
             model.addAttribute("mailDetails", mailDetails);
@@ -284,11 +285,12 @@ public class Admin {
         String uploadsDirectory = "https://www.apirest.tech/downloads/uploads/"+findLogged().get().getUserid().split("@")[0]+"/";
 
         mailEntity.setPathJoined(uploadsDirectory+random+mailDetails.getJointe().getOriginalFilename());
+        mailEntity.setDeleteFtpPath(random+mailDetails.getJointe().getOriginalFilename());
         mailEntity.setMailUser(findLogged().get());
         mailEntity.setUniqueId(mailDetails.getTo() + LocalDateTime.now().toString());
 
         // Gestion du fichier joint
-        if (!isDraft && mailDetails.getJointe() != null && !mailDetails.getJointe().isEmpty()) {
+        if (mailDetails.getJointe() != null && !mailDetails.getJointe().isEmpty()) {
             // Lire la pièce jointe comme un tableau d'octets
             byte[] fileContent = mailDetails.getJointe().getBytes();
 
@@ -296,26 +298,18 @@ public class Admin {
             ftpService.uploadFile( new ByteArrayInputStream(fileContent),random+mailDetails.getJointe().getOriginalFilename());
 
             // Envoi d'email avec pièce jointe
-            emailController.sendEmail(
+           if(!isDraft){
+               assert originalFilename != null;
+               emailController.sendEmail(
                     mailDetails.getTo(),
                     mailDetails.getSubject(),
                     mailDetails.getMessage(),
                     findLogged().get().getUserid(),
                     findLogged().get().getTt(),
-                    originalFilename,
-                    fileContent
+                    originalFilename.isEmpty()?null:originalFilename,
+                    fileContent==null?null:fileContent
             );
-        } else if (!isDraft) {
-            // Envoi d'email sans pièce jointe
-            emailController.sendEmail(
-                    mailDetails.getTo(),
-                    mailDetails.getSubject(),
-                    mailDetails.getMessage(),
-                    findLogged().get().getUserid(),
-                    findLogged().get().getTt(),
-                    null,
-                    null
-            );
+        }
         }
 
         // Sauvegarde dans la base de données
@@ -342,6 +336,35 @@ public class Admin {
             mail.get().setType(EmailType.DELETED);
             System.out.println("enregistré comme supprimer avec success");
 
+        }
+
+        return "redirect:/accueilMail";
+    }
+
+    @PostMapping(value = "/deleteFromServer")
+    public String deleteFromServer(Model model, @RequestParam(value = "id", required = true) Long id) {
+        Optional<MailEntity> mail = mailRepo.findById(id);
+        Optional<Users> loggedUser = findLogged();
+
+        if (mail.isPresent() && loggedUser.isPresent()) {
+            Users user = loggedUser.get();
+            MailEntity mailEntity = mail.get();
+
+            try {
+                if(!mail.get().getDeleteFtpPath().isEmpty())
+                    ftpService.deleteFile(mail.get().getDeleteFtpPath());
+                System.out.println("file name : "+mail.get().getPathJoined());
+                System.out.println("Utilisateur : " + user.getUserid() + ", Message supprimé : " + mailEntity.getUniqueId());
+            } catch (Exception e) {
+                System.err.println("Erreur lors de la suppression du message : " + e.getMessage());
+                e.printStackTrace();
+                // Ajouter un retour ou une notification à l'utilisateur en cas d'erreur
+                model.addAttribute("error", "Impossible de supprimer le message.");
+            }
+        } else {
+            System.err.println("Email ou utilisateur non trouvé pour l'ID : " + id);
+            // Ajouter un retour ou une notification à l'utilisateur en cas de données manquantes
+            model.addAttribute("error", "Message ou utilisateur introuvable.");
         }
 
         return "redirect:/accueilMail";
@@ -380,5 +403,6 @@ public class Admin {
         private String message;
         private MultipartFile jointe;
         private String pathJointe;
+        private String nameJointe;
     }
 }

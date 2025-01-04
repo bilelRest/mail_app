@@ -24,6 +24,7 @@
                 <label for="to" class="form-label">Destinataire</label>
                 <input type="email" name="to" th:value="${mailDetails.to}" class="form-control" id="to" placeholder="Entrez l'email du destinataire" required>
             </div>
+
             <div class="mb-3">
                 <label for="subject" class="form-label">Objet</label>
                 <input name="subject" type="text" th:value="${mailDetails.subject}" class="form-control" id="subject" placeholder="Entrez l'objet de l'email" required>
@@ -36,6 +37,13 @@
                     [[${mailDetails.message}]]
                 </textarea>
             </div>
+            <div th:class="${mailDetails.pathJointe!=null?'mb-3':'d-none'}">
+                <h6>Pièce jointe enregistré</h6>
+                <a th:href="${mailDetails.pathJointe}" th:text="${mailDetails.nameJointe}"> </a>
+                <br>
+            </div>
+
+
             <div class="mb-3">
                 <label for="jointe" class="form-label">Pièce jointe</label>
                 <input type="file" name="jointe" id="jointe" class="form-control">

@@ -21,14 +21,17 @@ import java.util.*;
 
 @Service
 public class ImapMail {
+
     @Autowired
     private MailRepo mailRepo;
 
     @Autowired
     private UsersRepo usersRepo;
+
     @Autowired
     private FtpService ftpService;
-    public List<MailEntity> readEmails(String user, String password) {
+
+    public List<MailEntity> readEmails(String user, String password, MailEntity aSupprimer) {
         String host = "mail.apirest.tech";
 
         Properties properties = new Properties();
@@ -50,47 +53,67 @@ public class ImapMail {
                 inbox.open(Folder.READ_WRITE);
             }
 
-            List<MailEntity> listMailSpring = mailRepo.findAllByMailUser(findLogged().orElse(null));
-            Message[] messages = (listMailSpring.isEmpty()) ?
-                    inbox.getMessages() :
-                    inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
+            if (aSupprimer == null) {
+                List<MailEntity> listMailSpring = mailRepo.findAllByMailUser(findLogged().orElse(null));
+                Message[] messages = (listMailSpring.isEmpty()) ?
+                        inbox.getMessages() :
+                        inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
 
-            for (Message message : messages) {
-                try {
-                    MailEntity mailEntity = new MailEntity();
-                    mailEntity.setMailUser(findLogged().orElse(null));
-                    mailEntity.setDate(message.getSentDate().toString());
-                    mailEntity.setSender(message.getFrom()[0].toString());
-                    mailEntity.setSubject(message.getSubject());
-                    mailEntity.setBody(getTextFromMessage(message));
-                    mailEntity.setIsRead(false);
-                    mailEntity.setType(EmailType.RECU);
-                    mailEntity.setUniqueId(Arrays.toString(message.getHeader("Message-ID")));
+                for (Message message : messages) {
+                    try {
+                        MailEntity mailEntity = new MailEntity();
+                        mailEntity.setMailUser(findLogged().orElse(null));
+                        mailEntity.setDate(message.getSentDate().toString());
+                        mailEntity.setSender(message.getFrom()[0].toString());
+                        mailEntity.setSubject(message.getSubject());
+                        mailEntity.setBody(getTextFromMessage(message));
+                        mailEntity.setIsRead(false);
+                        mailEntity.setType(EmailType.RECU);
 
-                    if (message.isMimeType("multipart/*")) {
-                        MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
-                        List<Map<String, Object>> attachments = extractAttachments(mimeMultipart);
+                        String[] messageIds = message.getHeader("Message-ID");
+                        if (messageIds != null && messageIds.length > 0) {
+                            mailEntity.setUniqueId(messageIds[0]);
+                        }
 
-                        for (Map<String, Object> attachment : attachments) {
-                            String fileName =UUID.randomUUID() +"_"+(String) attachment.get("fileName");
-                            String joinName=(String)attachment.get("fileName");
-                            InputStream content = (InputStream) attachment.get("content");
-                           // saveAttachment(content, fileName);
-                            ftpService.uploadFile(content,fileName);
-                            mailEntity.setJoinedName(joinName);
-                             String uploadsDirectory = "https://www.apirest.tech/downloads/uploads/"+findLogged().get().getUserid().split("@")[0]+"/"+fileName;
-                            mailEntity.setPathJoined( uploadsDirectory);
+                        if (message.isMimeType("multipart/*")) {
+                            MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
+                            List<Map<String, Object>> attachments = extractAttachments(mimeMultipart);
+
+                            for (Map<String, Object> attachment : attachments) {
+                                String fileName = UUID.randomUUID() + "_" + attachment.get("fileName").toString();
+                                InputStream content = (InputStream) attachment.get("content");
+                                ftpService.uploadFile(content, fileName);
+                                mailEntity.setDeleteFtpPath(fileName);
+
+                                String uploadsDirectory = "https://www.apirest.tech/downloads/uploads/" + findLogged().get().getUserid().split("@")[0] + "/" + fileName;
+                                mailEntity.setPathJoined(uploadsDirectory);
+                                mailEntity.setJoinedName((String) attachment.get("fileName"));
+                            }
+                        }
+
+                        mailEntityList.add(mailEntity);
+                    } catch (MessagingException e) {
+                        System.err.println("Erreur lors de l'affichage d'un message : " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                Message[] messages = inbox.getMessages();
+                for (Message message : messages) {
+                    String[] messageIds = message.getHeader("Message-ID");
+                    if (messageIds != null && messageIds.length > 0 && messageIds[0].equals(aSupprimer.getUniqueId())) {
+                        try {
+                            message.setFlag(Flags.Flag.DELETED, true);
+                            System.out.println("Email supprimé avec succès.");
+                            break;
+                        } catch (MessagingException e) {
+                            System.err.println("Erreur lors de la suppression de l'email : " + e.getMessage());
                         }
                     }
-
-                    mailEntityList.add(mailEntity);
-                } catch (MessagingException e) {
-                    System.err.println("Erreur lors de l'affichage d'un message : " + e.getMessage());
-                    e.printStackTrace();
                 }
             }
 
-            inbox.close(false);
+            inbox.close(true); // Expunge messages marked as deleted
         } catch (MessagingException e) {
             System.err.println("Erreur de connexion ou d'accès au serveur IMAP : " + e.getMessage());
             e.printStackTrace();
@@ -146,7 +169,7 @@ public class ImapMail {
         for (int i = 0; i < count; i++) {
             BodyPart bodyPart = mimeMultipart.getBodyPart(i);
 
-            if (bodyPart.getDisposition() != null && bodyPart.getDisposition().equalsIgnoreCase(Part.ATTACHMENT)) {
+            if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())) {
                 Map<String, Object> attachmentInfo = new HashMap<>();
                 attachmentInfo.put("fileName", bodyPart.getFileName());
                 attachmentInfo.put("content", bodyPart.getInputStream());
@@ -158,14 +181,6 @@ public class ImapMail {
 
         return attachments;
     }
-
-//    private void saveAttachment(InputStream inputStream, String fileName) throws IOException {
-//        java.nio.file.Path filePath = java.nio.file.Paths.get("attachments/" + UUID.randomUUID() + "_" + fileName);
-//        ftpService.uploadFile(filePath.getParent()., fileName);
-//        java.nio.file.Files.createDirectories(filePath.getParent());
-//        java.nio.file.Files.copy(inputStream, filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-//        System.out.println("Pièce jointe sauvegardée : " + filePath);
-//    }
 
     public Optional<Users> findLogged() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
