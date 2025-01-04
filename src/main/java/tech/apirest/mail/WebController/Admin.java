@@ -11,21 +11,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tech.apirest.mail.Entity.*;
 import tech.apirest.mail.Repo.MailRepo;
 import tech.apirest.mail.Repo.TransportRepo;
 import tech.apirest.mail.Repo.UsersRepo;
 import tech.apirest.mail.Repo.VirtualRepo;
 import tech.apirest.mail.serviceMail.EmailController;
+import tech.apirest.mail.serviceMail.FtpService;
 import tech.apirest.mail.serviceMail.ImapMail;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,14 +42,16 @@ public class Admin {
     private final MailRepo mailRepo;
     private EmailController emailController;
     private ImapMail imapMail;
+    private FtpService ftpService;
 
-    public Admin(TransportRepo transportRepo, VirtualRepo virtualRepo, UsersRepo usersRepo, MailRepo mailRepo, EmailController emailController, ImapMail imapMail) {
+    public Admin(TransportRepo transportRepo, VirtualRepo virtualRepo, UsersRepo usersRepo, MailRepo mailRepo, EmailController emailController, ImapMail imapMail, FtpService ftpService) {
         this.transportRepo = transportRepo;
         this.virtualRepo = virtualRepo;
         this.usersRepo = usersRepo;
         this.mailRepo = mailRepo;
         this.emailController = emailController;
         this.imapMail = imapMail;
+        this.ftpService = ftpService;
     }
 
     public Optional<Users> findLogged() {
@@ -172,7 +177,7 @@ public class Admin {
             mailDetails.setId(mail.get().getId());
             mailDetails.setTo(mail.get().getDestinataire());
             mailDetails.setSubject(mail.get().getSubject());
-            mailDetails.setJointe(mail.get().getPathJoined());
+            mailDetails.setPathJointe( mail.get().getPathJoined());
             mailDetails.setMessage(mail.get().getBody());
             System.out.println("Message corps transmis a new : " + mailDetails.getMessage());
             model.addAttribute("mailDetails", mailDetails);
@@ -253,19 +258,21 @@ public class Admin {
 
     @PostMapping(value = "/sendMail")
     public String sendMail(@ModelAttribute("mailDetails") MailDetails mailDetails,
-                           @RequestParam(value = "id", required = false) Long id) {
+                           @RequestParam(value = "id", required = false) Long id) throws IOException {
+        System.out.println("Chemin reçu : " + (mailDetails.getJointe() != null ? mailDetails.getJointe().getOriginalFilename() : "Aucune pièce jointe"));
         boolean isDraft = mailDetails.isDraft();
-        System.out.println("Draft mode: " + isDraft);
+
         MailEntity mailEntity;
 
-        // Vérifiez si un ID est fourni pour une mise à jour
+        // Si un ID est fourni, mettez à jour un email existant
         if (id != null) {
             mailEntity = mailRepo.findById(id).orElse(new MailEntity());
         } else {
             mailEntity = new MailEntity();
         }
+        String random=UUID.randomUUID().toString();
 
-        // Mise à jour des champs communs
+        // Remplissage des données communes
         mailEntity.setSender(findLogged().get().getUserid());
         mailEntity.setDate(LocalDateTime.now().toString());
         mailEntity.setIsRead(true);
@@ -273,17 +280,45 @@ public class Admin {
         mailEntity.setSubject(mailDetails.getSubject());
         mailEntity.setDestinataire(mailDetails.getTo());
         mailEntity.setType(isDraft ? EmailType.BROUILLON : EmailType.ENVOYEE);
-        mailEntity.setJoinedName(mailDetails.getJointe());
+        mailEntity.setJoinedName(mailDetails.getJointe() != null ? mailDetails.getJointe().getOriginalFilename() : null);
+        String uploadsDirectory = "https://www.apirest.tech/downloads/uploads/"+findLogged().get().getUserid().split("@")[0]+"/";
+
+        mailEntity.setPathJoined(uploadsDirectory+random+mailDetails.getJointe().getOriginalFilename());
         mailEntity.setMailUser(findLogged().get());
         mailEntity.setUniqueId(mailDetails.getTo() + LocalDateTime.now().toString());
 
-        // Envoi d'email si ce n'est pas un brouillon
-        if (!isDraft) {
-            emailController.sendEmail(mailDetails.getTo(), mailDetails.getSubject(), mailDetails.getMessage(),
-                    findLogged().get().getUserid(), findLogged().get().getTt());
+        // Gestion du fichier joint
+        if (!isDraft && mailDetails.getJointe() != null && !mailDetails.getJointe().isEmpty()) {
+            // Lire la pièce jointe comme un tableau d'octets
+            byte[] fileContent = mailDetails.getJointe().getBytes();
+
+            String originalFilename = mailDetails.getJointe().getOriginalFilename();
+            ftpService.uploadFile( new ByteArrayInputStream(fileContent),random+mailDetails.getJointe().getOriginalFilename());
+
+            // Envoi d'email avec pièce jointe
+            emailController.sendEmail(
+                    mailDetails.getTo(),
+                    mailDetails.getSubject(),
+                    mailDetails.getMessage(),
+                    findLogged().get().getUserid(),
+                    findLogged().get().getTt(),
+                    originalFilename,
+                    fileContent
+            );
+        } else if (!isDraft) {
+            // Envoi d'email sans pièce jointe
+            emailController.sendEmail(
+                    mailDetails.getTo(),
+                    mailDetails.getSubject(),
+                    mailDetails.getMessage(),
+                    findLogged().get().getUserid(),
+                    findLogged().get().getTt(),
+                    null,
+                    null
+            );
         }
 
-        // Enregistrer dans la base de données
+        // Sauvegarde dans la base de données
         mailRepo.save(mailEntity);
 
         return "redirect:/accueilMail";
@@ -343,6 +378,7 @@ public class Admin {
         private String to;
         private String subject;
         private String message;
-        private String jointe="";
+        private MultipartFile jointe;
+        private String pathJointe;
     }
 }
