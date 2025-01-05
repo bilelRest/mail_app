@@ -37,14 +37,13 @@
                     [[${mailDetails.message}]]
                 </textarea>
             </div>
-            <div th:class="${mailDetails.pathJointe!=null?'mb-3':'d-none'}">
-                <h6>Pièce jointe enregistré</h6>
-                <a th:href="${mailDetails.pathJointe}" th:text="${mailDetails.nameJointe}"> </a>
-                <br>
+            <div>
+                <a th:href="${mailDetails.pathJointe} " th:text="${mailDetails.nameJointe}"></a><br><br>
             </div>
 
 
-            <div class="mb-3">
+
+            <div th:class="${mailDetails.pathJointe==null?'mb-3':'d-none'}">
                 <label for="jointe" class="form-label">Pièce jointe</label>
                 <input type="file" name="jointe" id="jointe" class="form-control">
             </div>

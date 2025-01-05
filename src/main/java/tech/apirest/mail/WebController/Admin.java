@@ -29,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -298,18 +299,18 @@ public class Admin {
             ftpService.uploadFile( new ByteArrayInputStream(fileContent),random+mailDetails.getJointe().getOriginalFilename());
 
             // Envoi d'email avec pièce jointe
-           if(!isDraft){
-               assert originalFilename != null;
-               emailController.sendEmail(
-                    mailDetails.getTo(),
-                    mailDetails.getSubject(),
-                    mailDetails.getMessage(),
-                    findLogged().get().getUserid(),
-                    findLogged().get().getTt(),
-                    originalFilename.isEmpty()?null:originalFilename,
-                    fileContent==null?null:fileContent
-            );
-        }
+            if(!isDraft){
+                assert originalFilename != null;
+                emailController.sendEmail(
+                        mailDetails.getTo(),
+                        mailDetails.getSubject(),
+                        mailDetails.getMessage(),
+                        findLogged().get().getUserid(),
+                        findLogged().get().getTt(),
+                        originalFilename.isEmpty()?null:originalFilename,
+                        fileContent==null?null:fileContent
+                );
+            }
         }
 
         // Sauvegarde dans la base de données
@@ -317,6 +318,7 @@ public class Admin {
 
         return "redirect:/accueilMail";
     }
+
 
     @GetMapping(value = "/setNonLu/{id}")
     public String SetNonLu(Model model, @PathVariable(value = "id" )Long id) throws MessagingException {
