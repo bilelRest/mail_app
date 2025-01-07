@@ -13,3 +13,4 @@ public interface MailRepo extends JpaRepository<MailEntity,Long> {
     MailEntity  findByUniqueId(String messageId);
     @Query("SELECT COUNT(m) FROM MailEntity m WHERE m.isRead = false AND m.mailUser = :user")
     Integer countUnreadEmails(@Param("user") Users user);}
+

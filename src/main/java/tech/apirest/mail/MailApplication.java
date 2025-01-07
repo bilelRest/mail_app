@@ -72,6 +72,15 @@ public class MailApplication {
 	CommandLineRunner start() {
 		return args -> {
 			System.out.println("Commande runner marche");
+
+			//Virtual virtual=new Virtual("support@apirest.tech","bilel@apirest.tech");
+			//virtualInterface.addVirtual(virtual);
+//			usersRepo.deleteById(2L);
+//			Users users=usersRepo.findByUserid("nissen@apirest.tech");
+//		List<MailEntity>list=	mailRepo.findAllByMailUser(users);
+//		for (MailEntity mail:list){
+//			mailRepo.deleteById(mail.getId());
+//		}
 //		Users users= usersRepo.findByUserid("nissen@apirest.tech");
 //
 //			List<MailEntity> list=mailRepo.findAllByMailUser(users);

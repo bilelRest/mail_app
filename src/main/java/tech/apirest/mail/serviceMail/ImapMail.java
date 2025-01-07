@@ -30,6 +30,8 @@ public class ImapMail {
 
     @Autowired
     private FtpService ftpService;
+    @Autowired
+    private EmailController emailController;
 
     public List<MailEntity> readEmails(String user, String password, MailEntity aSupprimer) {
         String host = "mail.apirest.tech";
@@ -52,6 +54,43 @@ public class ImapMail {
             if (!inbox.isOpen()) {
                 inbox.open(Folder.READ_WRITE);
             }
+            int nbMessages = inbox.getMessageCount();
+            System.out.println("Nombre de messages dans inbox = " + nbMessages);
+
+            if (nbMessages == 0) {
+                try {
+                    String hos = "apirest_mail@apirest.tech"; // Hôte d'envoi
+                    String pas = "kittalizainnorex2013"; // Remplacer par le mot de passe réel sécurisé
+                    String subject = "Bienvenue chez ApiRestMail !";
+                    String message = "<html><body>" +
+                            "<p>Bonjour <strong>" + findLogged().get().getRealname() + "</strong>,</p>" +
+                            "<p>Nous sommes ravis de vous accueillir parmi nous ! Votre compte email a été créé avec succès, et vous pouvez désormais accéder à vos messages à tout moment.</p>" +
+                            "<p><strong>Voici les informations de votre nouveau compte :</strong></p>" +
+                            "<ul>" +
+                            "<li><strong>Login</strong> : " + findLogged().get().getUserid() + "</li>" +
+                            "<li><strong>Mot de passe</strong> : Utilisez le mot de passe que vous avez défini (mémorisez bien votre mot de passe ou enregistrez-le dans un endroit sécurisé).</li>" +
+                            "</ul>" +
+                            "<p>Cordialement,</p>" +
+                            "<p>L'équipe ApiRestMail</p>" +
+                            "</body></html>";
+
+                    // Envoi de l'email de bienvenue
+                    emailController.sendEmail(
+                            findLogged().get().getUserid(),  // Destinataire
+                            subject,
+                            message,
+                            hos,
+                            pas,  // Mot de passe de l'hôte
+                            null,
+                            null
+                    );
+                    System.out.println("Email de bienvenue envoyé à " + findLogged().get().getUserid());
+                } catch (Exception e) {
+                    System.err.println("Erreur inattendue lors de l'envoi de l'email : " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
 
             if (aSupprimer == null) {
                 List<MailEntity> listMailSpring = mailRepo.findAllByMailUser(findLogged().orElse(null));

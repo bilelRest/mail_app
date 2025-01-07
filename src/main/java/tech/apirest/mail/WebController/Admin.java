@@ -3,6 +3,7 @@ package tech.apirest.mail.WebController;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -92,45 +93,49 @@ public class Admin {
     @PostMapping(value = "/createMail")
     public String createMail(Model model, @ModelAttribute(value = "user") Users users) {
         if (users != null) {
-
-            Users users1 = usersRepo.findByUserid(users.getUserid() + "@apirest.tech");
-            if (users1 != null) {
-
-                return "redirect:/CreateAccount?us=" + users.getUserid() + "&name=" + users.getRealname() + "&&exist=" + true;
+            // Vérifier si l'utilisateur existe déjà
+            Users existingUser = usersRepo.findByUserid(users.getUserid() + "@apirest.tech");
+            if (existingUser != null) {
+                return "redirect:/CreateAccount?us=" + users.getUserid() + "&name=" + users.getRealname() + "&exist=true";
             }
-            PasswordEncoder encoder = new BCryptPasswordEncoder();
-            Users users2 = new Users();
 
-            users2.setUid(1000);
-            users2.setGid(1000);
-            users2.setPassword(encoder.encode(users.getPassword()));
-            users2.setUserid(users.getUserid() + "@apirest.tech");
-            users2.setRealname(users.getRealname());
-            users2.setMail(users.getUserid() + "@apirest.tech");
-            users2.setHome("apirest.tech/" + users.getUserid() + "/");
-            users2.setTt(users.getPassword());
-            //System.out.println(users2);
-            usersRepo.save(users2);
+            // Créer un nouvel utilisateur
+            PasswordEncoder encoder = new BCryptPasswordEncoder();
+            Users newUser = new Users();
+            newUser.setUid(1000);
+            newUser.setGid(1000);
+            newUser.setPassword(encoder.encode(users.getPassword())); // Mot de passe encodé
+            newUser.setUserid(users.getUserid() + "@apirest.tech");
+            newUser.setRealname(users.getRealname());
+            newUser.setMail(users.getUserid() + "@apirest.tech");
+            newUser.setHome("apirest.tech/" + users.getUserid() + "/");
+            newUser.setTt(users.getPassword()); // Attention au stockage en clair du mot de passe
+            usersRepo.save(newUser);
+
+            // Configurer les entrées pour Transport et Virtual
             Transport transport = new Transport();
             transport.setTransport("virtual:");
             transport.setDomain(users.getUserid() + "@apirest.tech");
             transportRepo.save(transport);
-            //System.out.println(transport);
+
             Virtual virtual = new Virtual();
             virtual.setAddress(users.getUserid() + "@apirest.tech");
             virtual.setUserid(users.getUserid() + "@apirest.tech");
-            // System.out.println(virtual);
             virtualRepo.save(virtual);
 
+
+
+
         }
+
         return "redirect:/login";
     }
+
 
     @GetMapping(value = "/accueilMail")
     public String accueilMail(Model model) throws MessagingException, IOException {
         System.out.println("tt trouvé : " + findLogged().get().getTt());
         model.addAttribute("user", findLogged().get());
-
 
          List<MailEntity> mailEntityListImap=imapMail.readEmails(findLogged().get().getUserid(),findLogged().get().getTt(),null);
         if (!mailEntityListImap.isEmpty()){
@@ -282,11 +287,13 @@ public class Admin {
         mailEntity.setSubject(mailDetails.getSubject());
         mailEntity.setDestinataire(mailDetails.getTo());
         mailEntity.setType(isDraft ? EmailType.BROUILLON : EmailType.ENVOYEE);
+        if(mailDetails.jointe!=null&&mailDetails.nameJointe!=null){
         mailEntity.setJoinedName(mailDetails.getJointe() != null ? mailDetails.getJointe().getOriginalFilename() : null);
         String uploadsDirectory = "https://www.apirest.tech/downloads/uploads/"+findLogged().get().getUserid().split("@")[0]+"/";
 
         mailEntity.setPathJoined(uploadsDirectory+random+mailDetails.getJointe().getOriginalFilename());
         mailEntity.setDeleteFtpPath(random+mailDetails.getJointe().getOriginalFilename());
+        }
         mailEntity.setMailUser(findLogged().get());
         mailEntity.setUniqueId(mailDetails.getTo() + LocalDateTime.now().toString());
 
@@ -309,14 +316,24 @@ public class Admin {
                         findLogged().get().getTt(),
                         originalFilename.isEmpty()?null:originalFilename,
                         fileContent==null?null:fileContent
+
                 );
-            }
-        }
+                mailRepo.save(mailEntity);
+                return "redirect:/accueilMail";            }
+        }if(!isDraft){
 
-        // Sauvegarde dans la base de données
-        mailRepo.save(mailEntity);
+            emailController.sendEmail(
+                    mailDetails.getTo(),
+                    mailDetails.getSubject(),
+                    mailDetails.getMessage(),
+                    findLogged().get().getUserid(),
+                    findLogged().get().getTt(),null,null
 
+            );
+            mailRepo.save(mailEntity);
+            return "redirect:/accueilMail";            }
         return "redirect:/accueilMail";
+
     }
 
 
