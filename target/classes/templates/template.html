@@ -91,7 +91,7 @@
 
         </ul>
         <div style="margin-top:50%">
-            <h6 style="margin-top:5px" th:text="${user.realname}"></h6>
+            <h6 style="margin-top:5px" th:text="${user.realname.toUpperCase()}"></h6>
             <a class="btn btn-secondary" th:href="@{/deconnect}">Déconneter</a>
         </div>
 
