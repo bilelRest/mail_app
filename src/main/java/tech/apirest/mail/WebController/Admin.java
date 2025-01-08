@@ -3,6 +3,8 @@ package tech.apirest.mail.WebController;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -133,7 +135,8 @@ public class Admin {
 
 
     @GetMapping(value = "/accueilMail")
-    public String accueilMail(Model model) throws MessagingException, IOException {
+    public String accueilMail(Model model,
+                              @RequestParam(value = "keyword",defaultValue = "")String keyword,@RequestParam(value = "page",defaultValue = "0")int page,@RequestParam(value = "size",defaultValue = "9")int size) throws MessagingException, IOException {
         System.out.println("tt trouvé : " + findLogged().get().getTt());
         model.addAttribute("user", findLogged().get());
 
@@ -148,25 +151,30 @@ public class Admin {
             }
             mailRepo.saveAll(mailEntityList1);
         }
-        List<MailEntity> mailEntityList2 = mailRepo.findAllByMailUser(findLogged().get());
-        List<MailEntity> mailEntityList = new ArrayList<>();
-        for (MailEntity mail : mailEntityList2) {
-            if (mail.getType() == EmailType.RECU) {
-                mailEntityList.add(mail);
-            }
+        Page<MailEntity> mailEntityList2=null;
+        if (!findLogged().isEmpty()) {
+            mailEntityList2 = mailRepo.getBypageable(findLogged().get(), EmailType.RECU, PageRequest.of(page, size));
+
         }
-        System.out.println("Taille de la table spring : " + mailEntityList.size());
+       // System.out.println("Taille de la table spring : " + mailEntityList.size());
 //        System.out.println( " taille du tableau : " +mailEntityListImap.size());
-        int nombreTotal = mailEntityList.size();
+     //   int nombreTotal = mailEntityList.size();
 
         int nombreNonLu = mailRepo.countUnreadEmails(findLogged().get());
+        model.addAttribute("pages", new int[mailEntityList2.getTotalPages()]);
+
+        model.addAttribute("currentPage", page);
+
+        model.addAttribute("keyword",keyword);
+
         model.addAttribute("size", nombreNonLu);
 
         System.out.println("Nombre non lu = " + nombreNonLu);
-        model.addAttribute("total", nombreTotal);
-        model.addAttribute("messages", mailEntityList.stream()
-                .sorted((m1, m2) -> Long.compare(m2.getId(), m1.getId()))
-                .collect(Collectors.toList()));
+      //  model.addAttribute("total", nombreTotal);
+        model.addAttribute("messages",mailEntityList2.getContent());
+//        model.addAttribute("messages", mailEntityList.stream()
+//                .sorted((m1, m2) -> Long.compare(m2.getId(), m1.getId()))
+//                .collect(Collectors.toList()));
 
         return "accueilMail";
     }
