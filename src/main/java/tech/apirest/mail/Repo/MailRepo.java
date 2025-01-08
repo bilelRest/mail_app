@@ -13,7 +13,7 @@ import java.util.List;
 
 public interface MailRepo extends JpaRepository<MailEntity,Long> {
     List<MailEntity> findAllByMailUser(Users user);
-    @Query("SELECT m FROM MailEntity m WHERE m.mailUser=:user AND m.type=:type")
+    @Query("SELECT m FROM MailEntity m WHERE m.mailUser=:user AND m.type=:type ORDER BY m.id DESC")
     Page<MailEntity> getBypageable(@Param("user")Users user,@Param("type") EmailType type, Pageable pageable);
     MailEntity  findByUniqueId(String messageId);
     @Query("SELECT COUNT(m) FROM MailEntity m WHERE m.isRead = false AND m.mailUser = :user")

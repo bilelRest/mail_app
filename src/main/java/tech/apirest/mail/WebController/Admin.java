@@ -171,7 +171,8 @@ public class Admin {
 
         System.out.println("Nombre non lu = " + nombreNonLu);
       //  model.addAttribute("total", nombreTotal);
-        model.addAttribute("messages",mailEntityList2.getContent());
+        model.addAttribute("messages", mailEntityList2);
+
 //        model.addAttribute("messages", mailEntityList.stream()
 //                .sorted((m1, m2) -> Long.compare(m2.getId(), m1.getId()))
 //                .collect(Collectors.toList()));
