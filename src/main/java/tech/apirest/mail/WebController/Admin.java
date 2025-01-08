@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,10 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -137,7 +133,6 @@ public class Admin {
     @GetMapping(value = "/accueilMail")
     public String accueilMail(Model model,
                               @RequestParam(value = "keyword",defaultValue = "")String keyword,@RequestParam(value = "page",defaultValue = "0")int page,@RequestParam(value = "size",defaultValue = "9")int size) throws MessagingException, IOException {
-        System.out.println("tt trouvé : " + findLogged().get().getTt());
         model.addAttribute("user", findLogged().get());
 
          List<MailEntity> mailEntityListImap=imapMail.readEmails(findLogged().get().getUserid(),findLogged().get().getTt(),null);
@@ -165,7 +160,6 @@ public class Admin {
 
         model.addAttribute("size", nombreNonLu);
 
-        System.out.println("Nombre non lu = " + nombreNonLu);
         model.addAttribute("messages", mailEntityList2);
 
         return "accueilMail";
@@ -175,7 +169,6 @@ public class Admin {
     public String newMail(Model model, @RequestParam(value = "id", defaultValue = "") Long id) {
         if (id != null) {
             Optional<MailEntity> mail = mailRepo.findById(id);
-            System.out.println(mail);
             int nombreNonLu = mailRepo.countUnreadEmails(findLogged().get());
             model.addAttribute("size", nombreNonLu);
             model.addAttribute("user", findLogged().get());
@@ -186,7 +179,6 @@ public class Admin {
             mailDetails.setPathJointe( mail.get().getPathJoined());
             mailDetails.setNameJointe(mail.get().getJoinedName());
             mailDetails.setMessage(mail.get().getBody());
-            System.out.println("Message corps transmis a new : " + mailDetails.getMessage());
             model.addAttribute("mailDetails", mailDetails);
             return "newMail";
         }
@@ -266,7 +258,6 @@ public class Admin {
     @PostMapping(value = "/sendMail")
     public String sendMail(@ModelAttribute("mailDetails") MailDetails mailDetails,
                            @RequestParam(value = "id", required = false) Long id) throws IOException {
-        System.out.println("Chemin reçu : " + (mailDetails.getJointe() != null ? mailDetails.getJointe().getOriginalFilename() : "Aucune pièce jointe"));
         boolean isDraft = mailDetails.isDraft();
 
         MailEntity mailEntity;
@@ -355,7 +346,6 @@ public class Admin {
         model.addAttribute("page",page);
         if(mail.get()!=null){
             mail.get().setType(EmailType.DELETED);
-            System.out.println("enregistré comme supprimer avec success");
 
         }
 
@@ -374,16 +364,12 @@ public class Admin {
             try {
                 if(!mail.get().getDeleteFtpPath().isEmpty())
                     ftpService.deleteFile(mail.get().getDeleteFtpPath());
-                System.out.println("file name : "+mail.get().getPathJoined());
-                System.out.println("Utilisateur : " + user.getUserid() + ", Message supprimé : " + mailEntity.getUniqueId());
             } catch (Exception e) {
-                System.err.println("Erreur lors de la suppression du message : " + e.getMessage());
                 e.printStackTrace();
                 // Ajouter un retour ou une notification à l'utilisateur en cas d'erreur
                 model.addAttribute("error", "Impossible de supprimer le message.");
             }
         } else {
-            System.err.println("Email ou utilisateur non trouvé pour l'ID : " + id);
             // Ajouter un retour ou une notification à l'utilisateur en cas de données manquantes
             model.addAttribute("error", "Message ou utilisateur introuvable.");
         }

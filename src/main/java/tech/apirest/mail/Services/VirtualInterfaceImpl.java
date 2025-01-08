@@ -17,7 +17,6 @@ public class VirtualInterfaceImpl implements VirtualInterface {
     public Boolean addVirtual(Virtual virtual) {
         try {
             virtualRepo.save(virtual);
-            System.out.println("Success virtual");
             return true;
         } catch (Exception e) {
             e.printStackTrace();

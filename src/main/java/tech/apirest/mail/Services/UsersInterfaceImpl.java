@@ -23,7 +23,6 @@ public class UsersInterfaceImpl implements UsersInterface {
     public Boolean addUser(Users users) {
         try{
             usersRepo.save(users);
-            System.out.println("success users");
             return true;
         }catch (Exception e){
             e.printStackTrace();

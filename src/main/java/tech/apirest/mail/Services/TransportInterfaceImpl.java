@@ -17,7 +17,6 @@ public class TransportInterfaceImpl implements TransportInterface {
     public Boolean addTransport(Transport transport) {
         try {
             transportRepo.save(transport);
-            System.out.println("Crééer avec succses");
             return true;
         } catch (Exception e) {
             e.printStackTrace();

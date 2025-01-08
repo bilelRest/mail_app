@@ -6,29 +6,16 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import tech.apirest.mail.Entity.*;
 import tech.apirest.mail.Repo.MailRepo;
-import tech.apirest.mail.Repo.TransportRepo;
 import tech.apirest.mail.Repo.UsersRepo;
-import tech.apirest.mail.Repo.VirtualRepo;
 import tech.apirest.mail.Services.TransportInterfaceImpl;
 import tech.apirest.mail.Services.UsersInterfaceImpl;
 import tech.apirest.mail.Services.VirtualInterfaceImpl;
-//import tech.apirest.mail.serviceMail.EmailService;
-//import tech.apirest.mail.serviceMail.ImapMail;
 
-import javax.mail.Message;
+
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import java.io.File;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Scanner;
 
 @SpringBootApplication
 public class MailApplication {
@@ -71,7 +58,6 @@ public class MailApplication {
 	@Bean
 	CommandLineRunner start() {
 		return args -> {
-			System.out.println("Commande runner marche");
 
 			//Virtual virtual=new Virtual("support@apirest.tech","bilel@apirest.tech");
 			//virtualInterface.addVirtual(virtual);
