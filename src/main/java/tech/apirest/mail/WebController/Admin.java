@@ -156,10 +156,6 @@ public class Admin {
             mailEntityList2 = mailRepo.getBypageable(findLogged().get(), EmailType.RECU, PageRequest.of(page, size));
 
         }
-       // System.out.println("Taille de la table spring : " + mailEntityList.size());
-//        System.out.println( " taille du tableau : " +mailEntityListImap.size());
-     //   int nombreTotal = mailEntityList.size();
-
         int nombreNonLu = mailRepo.countUnreadEmails(findLogged().get());
         model.addAttribute("pages", new int[mailEntityList2.getTotalPages()]);
 
@@ -170,12 +166,7 @@ public class Admin {
         model.addAttribute("size", nombreNonLu);
 
         System.out.println("Nombre non lu = " + nombreNonLu);
-      //  model.addAttribute("total", nombreTotal);
         model.addAttribute("messages", mailEntityList2);
-
-//        model.addAttribute("messages", mailEntityList.stream()
-//                .sorted((m1, m2) -> Long.compare(m2.getId(), m1.getId()))
-//                .collect(Collectors.toList()));
 
         return "accueilMail";
     }
@@ -347,26 +338,28 @@ public class Admin {
 
 
     @GetMapping(value = "/setNonLu/{id}")
-    public String SetNonLu(Model model, @PathVariable(value = "id" )Long id) throws MessagingException {
+    public String SetNonLu(Model model, @PathVariable(value = "id" )Long id,@RequestParam(value = "page",defaultValue = "0")int page) throws MessagingException {
 
         Optional<MailEntity> mail=mailRepo.findById(id);
+        model.addAttribute("page",page);
         if(mail.get()!=null){
             mail.get().setIsRead(false);
         }
 
-        return "redirect:/accueilMail";
+        return "redirect:/accueilMail?page="+page;
     }
     @GetMapping(value = "/delete/{id}")
-    public String DeleteMessage(Model model, @PathVariable(value = "id" )Long id) throws MessagingException {
+    public String DeleteMessage(Model model, @PathVariable(value = "id" )Long id,@RequestParam(value = "page",defaultValue = "0")int page) throws MessagingException {
 
         Optional<MailEntity> mail=mailRepo.findById(id);
+        model.addAttribute("page",page);
         if(mail.get()!=null){
             mail.get().setType(EmailType.DELETED);
             System.out.println("enregistré comme supprimer avec success");
 
         }
 
-        return "redirect:/accueilMail";
+        return "redirect:/accueilMail?page="+page;
     }
 
     @PostMapping(value = "/deleteFromServer")

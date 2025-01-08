@@ -35,11 +35,19 @@
                     <a class="btn btn-success" title="Ouvrir" th:href="@{/inbox/{id}(id=${message.id})}">
                         <i class="bi bi-book"></i>
                     </a>
-                    <a th:class="${message.isRead?'btn btn-secondary':'btn btn-secondary disabled'}" title="Marquer comme non lu" th:href="@{/setNonLu/{id}(id=${message.id})}">
-                         <i class="bi bi-app-indicator "></i>
+                    <a th:href="${message.isRead ? '/setNonLu/' + message.id + '?page=' + currentPage : '#'}"
+                       th:class="${message.isRead ? 'btn btn-secondary' : 'btn btn-secondary disabled'}"
+                       th:title="${message.isRead ? 'Marquer comme non lu' : 'Déjà non lu'}">
+                        <i class="bi bi-app-indicator"></i>
                     </a>
-                    <a onclick="return confirm('Etes vous sur de vouloir supprimer ce message ?')" class="btn btn-danger" title="Supprimer le message" th:href="@{/delete/{id}(id=${message.id})}">
+
+                    <a onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce message ?')"
+                       class="btn btn-danger"
+                       title="Supprimer le message"
+                       th:href="@{/delete/{id}(id=${message.id}, page=${currentPage})}">
                         <i class="bi bi-trash"></i>
+
+
                     </a>
                 </div>
             </div>
