@@ -44,6 +44,30 @@
                 </div>
             </div>
         </div>
+        <div class="card-footer">
+            <ul class="pagination justify-content-center mb-0">
+                <!-- Boutons de pagination -->
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a title="Première Page" class="page-link" th:href="@{/accueilMail(page=${0}, keyword=${keyword})}">&laquo;&laquo;</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a title="Page Précédente" class="page-link"
+                       th:href="@{/accueilMail(page=${currentPage - 1}, keyword=${keyword})}">&laquo;</a>
+                </li>
+                <li class="page-item" th:each="page, status : ${pages}"
+                    th:class="${status.index == currentPage ? ' active' : 'd-none'}">
+                    <a title="Page En Cour" class="page-link" th:text="${status.index + 1} + ' / ' + ${pages.length}"></a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == pages.length - 1} ? 'disabled'">
+                    <a title="Page Suivante" class="page-link"
+                       th:href="@{/accueilMail(page=${currentPage + 1}, keyword=${keyword})}">&raquo;</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == pages.length - 1} ? 'disabled'">
+                    <a title="Dernière Page" class="page-link"
+                       th:href="@{/accueilMail(page=${pages.length - 1}, keyword=${keyword})}">&raquo;&raquo;</a>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 <script>
