@@ -12,10 +12,13 @@ import tech.apirest.mail.Repo.UsersRepo;
 import tech.apirest.mail.Services.TransportInterfaceImpl;
 import tech.apirest.mail.Services.UsersInterfaceImpl;
 import tech.apirest.mail.Services.VirtualInterfaceImpl;
+import tech.apirest.mail.serviceMail.EmailUtils;
 
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import java.util.ArrayList;
+import java.util.List;
 
 @SpringBootApplication
 public class MailApplication {
@@ -27,6 +30,8 @@ public class MailApplication {
 	VirtualInterfaceImpl virtualInterface;
 	@Autowired
 	MailRepo mailRepo;
+
+
 //	@Autowired
 //	ImapMail imapMail;
 	@Enumerated(EnumType.STRING)
@@ -37,10 +42,13 @@ public class MailApplication {
 //	PasswordEncoder passwordEncoder () {
 //		return new BCryptPasswordEncoder();
 //	}
+	@Autowired
+	EmailUtils emailUtils;
 
 	private static UsersRepo usersRepo;
 
-    public MailApplication(UsersRepo usersRepo) {
+
+	public MailApplication( UsersRepo usersRepo) {
         this.usersRepo = usersRepo;
     }
 
@@ -58,6 +66,20 @@ public class MailApplication {
 	@Bean
 	CommandLineRunner start() {
 		return args -> {
+
+			System.out.println("commande runner marche");
+
+//			List<MailEntity> mailEntityList=mailRepo.findAll();
+//			List<MailEntity> mailEntityList1=new ArrayList<>();
+//			System.out.println("debut : ");
+//			for (MailEntity mail:mailEntityList){
+//
+//				String mls=emailUtils.extractEmail(mail.getSender());
+//				mail.setSender(mls);
+//				mailEntityList1.add(mail);
+//			}
+//			mailRepo.saveAll(mailEntityList1);
+//			System.out.println("fin : ");
 
 			//Virtual virtual=new Virtual("support@apirest.tech","bilel@apirest.tech");
 			//virtualInterface.addVirtual(virtual);

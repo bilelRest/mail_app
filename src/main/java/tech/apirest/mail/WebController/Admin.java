@@ -256,21 +256,31 @@ public class Admin {
 
 
     @PostMapping(value = "/sendMail")
-    public String sendMail(@ModelAttribute("mailDetails") MailDetails mailDetails,
-                           @RequestParam(value = "id", required = false) Long id) throws IOException {
+    public String sendMail(
+            @ModelAttribute("mailDetails") MailDetails mailDetails,
+            @RequestParam(value = "id", required = false) Long id,
+            @RequestParam(value = "reply", defaultValue = "false") boolean reply) throws IOException {
+System.out.println("Id recu = "+id);
+System.out.println("reply recu : "+reply);
         boolean isDraft = mailDetails.isDraft();
+        MailEntity mailEntity=new MailEntity();
+        String newReply="";
+        if(id!=null&&reply){
+            Optional<MailEntity> mailEntity2=mailRepo.findById(id);
+            newReply=mailDetails.fromsender+mailDetails.to+UUID.randomUUID();
+            mailEntity2.get().setReplyId(newReply);
 
-        MailEntity mailEntity;
-
-        // Si un ID est fourni, mettez à jour un email existant
-        if (id != null) {
-            mailEntity = mailRepo.findById(id).orElse(new MailEntity());
-        } else {
-            mailEntity = new MailEntity();
         }
-        String random=UUID.randomUUID().toString();
+        if (id!=null && !reply){
+            Optional<MailEntity> mailEntity3=mailRepo.findById(id);
+            mailEntity=mailEntity3.get();
+        }
 
-        // Remplissage des données communes
+        String random = UUID.randomUUID().toString();
+        String uploadsDirectory = "https://www.apirest.tech/downloads/uploads/" +
+                findLogged().get().getUserid().split("@")[0] + "/";
+
+        // Remplissage des données
         mailEntity.setSender(findLogged().get().getUserid());
         mailEntity.setDate(LocalDateTime.now().toString());
         mailEntity.setIsRead(true);
@@ -278,54 +288,45 @@ public class Admin {
         mailEntity.setSubject(mailDetails.getSubject());
         mailEntity.setDestinataire(mailDetails.getTo());
         mailEntity.setType(isDraft ? EmailType.BROUILLON : EmailType.ENVOYEE);
-        if(mailDetails.jointe!=null&&mailDetails.nameJointe!=null){
-        mailEntity.setJoinedName(mailDetails.getJointe() != null ? mailDetails.getJointe().getOriginalFilename() : null);
-        String uploadsDirectory = "https://www.apirest.tech/downloads/uploads/"+findLogged().get().getUserid().split("@")[0]+"/";
+        mailEntity.setReplyId(newReply);
 
-        mailEntity.setPathJoined(uploadsDirectory+random+mailDetails.getJointe().getOriginalFilename());
-        mailEntity.setDeleteFtpPath(random+mailDetails.getJointe().getOriginalFilename());
-        }
-        mailEntity.setMailUser(findLogged().get());
-        mailEntity.setUniqueId(mailDetails.getTo() + LocalDateTime.now().toString());
-
-        // Gestion du fichier joint
         if (mailDetails.getJointe() != null && !mailDetails.getJointe().isEmpty()) {
-            // Lire la pièce jointe comme un tableau d'octets
+            String originalFilename = mailDetails.getJointe().getOriginalFilename();
             byte[] fileContent = mailDetails.getJointe().getBytes();
 
-            String originalFilename = mailDetails.getJointe().getOriginalFilename();
-            ftpService.uploadFile( new ByteArrayInputStream(fileContent),random+mailDetails.getJointe().getOriginalFilename());
+            mailEntity.setJoinedName(originalFilename);
+            mailEntity.setPathJoined(uploadsDirectory + random + originalFilename);
+            mailEntity.setDeleteFtpPath(random + originalFilename);
 
-            // Envoi d'email avec pièce jointe
-            if(!isDraft){
-                assert originalFilename != null;
+            ftpService.uploadFile(new ByteArrayInputStream(fileContent), random + originalFilename);
+
+            if (!isDraft) {
                 emailController.sendEmail(
                         mailDetails.getTo(),
                         mailDetails.getSubject(),
                         mailDetails.getMessage(),
                         findLogged().get().getUserid(),
                         findLogged().get().getTt(),
-                        originalFilename.isEmpty()?null:originalFilename,
-                        fileContent==null?null:fileContent
-
+                        originalFilename,
+                        fileContent
                 );
-                mailRepo.save(mailEntity);
-                return "redirect:/accueilMail";            }
-        }if(!isDraft){
-
+            }
+        } else if (!isDraft) {
             emailController.sendEmail(
                     mailDetails.getTo(),
                     mailDetails.getSubject(),
                     mailDetails.getMessage(),
                     findLogged().get().getUserid(),
-                    findLogged().get().getTt(),null,null
-
+                    findLogged().get().getTt(),
+                    null,
+                    null
             );
-            mailRepo.save(mailEntity);
-            return "redirect:/accueilMail";            }
-        return "redirect:/accueilMail";
+        }
 
+        mailRepo.save(mailEntity);
+        return "redirect:/accueilMail";
     }
+
 
 
     @GetMapping(value = "/setNonLu/{id}")
@@ -378,19 +379,39 @@ public class Admin {
     }
 
     @GetMapping(value = "/inbox/{id}")
-    public String inboxById(Model model, @PathVariable(value = "id" )Long id) throws MessagingException {
-        int nombreNonLu= mailRepo.countUnreadEmails(findLogged().get());
-        model.addAttribute("size",nombreNonLu);
-        model.addAttribute("user",findLogged().get());
-      Optional<  MailEntity> mail=mailRepo.findById(id);
-        if (mail!=null){
-            mail.get().setIsRead(true);
-            mailRepo.save(mail.get());
+    public String inboxById(Model model, @PathVariable Long id) throws MessagingException {
+        int nombreNonLu = mailRepo.countUnreadEmails(findLogged().get());
+        model.addAttribute("size", nombreNonLu);
+        model.addAttribute("user", findLogged().get());
+
+
+        Optional<MailEntity> mail = mailRepo.findById(id);
+
+        if (mail.isPresent()) {
+            MailEntity mailEntity = mail.get();
+            mailEntity.setIsRead(true);
+            mailRepo.save(mailEntity);
+            String uniquereply=mail.get().getReplyId();
+            String senders=mail.get().getSender();
+
+
+            List<MailEntity> relatedMails = mailRepo.trouverMail(senders);
+            if(!relatedMails.isEmpty()){
+
+                model.addAttribute("mails", relatedMails);
+                System.out.println("la liste n'est pas vide et sa longueur est "+relatedMails.size());}
+            else {
+                List<MailEntity> mailEntityList=new ArrayList<>();
+                mailEntityList.add(mail.get());
+                model.addAttribute("mails", mailEntityList);
+
+            }
+
         }
-        model.addAttribute("mail",mail.get());
 
         return "Inbox";
     }
+
 
     @Data
     @NoArgsConstructor
@@ -411,5 +432,7 @@ public class Admin {
         private MultipartFile jointe;
         private String pathJointe;
         private String nameJointe;
+        private String fromsender;
+
     }
 }

@@ -17,5 +17,10 @@ public interface MailRepo extends JpaRepository<MailEntity,Long> {
     Page<MailEntity> getBypageable(@Param("user")Users user,@Param("type") EmailType type, Pageable pageable);
     MailEntity  findByUniqueId(String messageId);
     @Query("SELECT COUNT(m) FROM MailEntity m WHERE m.isRead = false AND m.mailUser = :user")
-    Integer countUnreadEmails(@Param("user") Users user);}
+    Integer countUnreadEmails(@Param("user") Users user);
+    @Query("SELECT m FROM MailEntity m WHERE m.sender = :senders OR m.destinataire = :senders ORDER BY m.id DESC")
+    List<MailEntity> trouverMail(@Param("senders") String senders);
+
+
+}
 

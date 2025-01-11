@@ -27,9 +27,9 @@ public class MailEntity {
     private String body;
     private Boolean isRead=false;
     private String destinataire;
-    private String joinedName;
-    private String pathJoined;
-    private String deleteFtpPath;
+    private String joinedName="";
+    private String pathJoined="";
+    private String deleteFtpPath="";
     @Enumerated(EnumType.STRING)
     private EmailType type;
     @ManyToOne
@@ -37,6 +37,7 @@ public class MailEntity {
     private Users mailUser;
     @Column(unique = true)
     private String uniqueId;
+    private String replyId;
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -48,4 +49,5 @@ public class MailEntity {
     public int hashCode() {
         return Objects.hash(uniqueId);
     }
+
 }

@@ -31,6 +31,8 @@ public class ImapMail {
     private FtpService ftpService;
     @Autowired
     private EmailController emailController;
+    @Autowired
+    private EmailUtils emailUtils;
 
     public List<MailEntity> readEmails(String user, String password, MailEntity aSupprimer) {
         String host = "mail.apirest.tech";
@@ -102,7 +104,7 @@ public class ImapMail {
                         MailEntity mailEntity = new MailEntity();
                         mailEntity.setMailUser(findLogged().orElse(null));
                         mailEntity.setDate(message.getSentDate().toString());
-                        mailEntity.setSender(message.getFrom()[0].toString());
+                        mailEntity.setSender(emailUtils.extractEmail(message.getFrom()[0].toString()));
                         mailEntity.setSubject(message.getSubject());
                         mailEntity.setBody(getTextFromMessage(message));
                         mailEntity.setIsRead(false);

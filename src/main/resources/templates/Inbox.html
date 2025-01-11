@@ -8,14 +8,70 @@
     <title>Inbox</title>
     <link rel="stylesheet" href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css">
     <script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="/webjars/bootstrap-icons/1.10.5/font/bootstrap-icons.css"></head>
+    <link rel="stylesheet" href="/webjars/bootstrap-icons/1.10.5/font/bootstrap-icons.css">
+
+</head>
 <body>
 <div layout:fragment="content1" class="container my-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
+    <div class="card-footer d-block ">
+        <form th:action="@{/deleteFromServer}+'?id='+${mails[0].id}" method="post">
+            <input hidden="hidden" name="uniqueId" th:value="${mails[0].id}">
+            <button type="button" onclick="showreply()" class="btn btn-outline-success btn-sm">Repondre</button>
+
+            <button  style="margin-left:80%" type="submit"  onclick="return confirm('Etes vous sur de vouloir supprimer definitivement ce message : \n Cette operation est irreversible ?')" class="btn btn-outline-danger btn-sm">Supprimer</button></form>
+    </div>
+    <div  id="reply" style="display:none">
+        <!-- Formulaire -->
+        <form method="post" th:action="@{/sendMail(reply=true, id=${mails[0].id})}"
+              id="mailForm" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="to" class="form-label">Destinataire</label>
+                <input type="email" name="to" th:value="${mails[0].sender}" class="form-control" id="to" placeholder="Entrez l'email du destinataire" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="subject" class="form-label">Objet</label>
+                <input name="subject" th:value="'Re:'+${mails[0].subject}" type="text"  class="form-control" id="subject" placeholder="Entrez l'objet de l'email" required>
+            </div>
+            <input name="id" type="text"  id="id" hidden="hidden">
+
+            <div class="mb-3">
+                <label for="message" class="form-label">Texte de l'email</label>
+                <textarea class="form-control" name="message" id="message" rows="5" placeholder="Rédigez votre message ici" required>
+
+                </textarea>
+            </div>
+            <div>
+                <a ></a><br><br>
+            </div>
+
+
+
+            <div >
+                <label for="jointe" class="form-label">Pièce jointe</label>
+                <input type="file" name="jointe" id="jointe" class="form-control">
+            </div>
+            <input type="hidden" id="hid" name="draft" value="0">
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary">Envoyer</button>
+                <button type="button" onclick="saveAsDraft()" class="btn btn-secondary">Enregistrer comme brouillon</button>
+            </div>
+        </form>
+    </div>
+
+    <script >
+        var show=document.getElementById('reply')
+        function showreply(){
+            show.style.display ="block";
+
+        }
+    </script>
+    <div style="margin-top:10px;margin-bottom:10px" class="card shadow-sm" th:each="mail:${mails}">
+
+        <div th:class="${mail.type.name()=='RECU'}?'card-header bg-primary text-white':'card-header bg-light text-dark'">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0" th:utext="${mail.sender}"></h5>
-                <span class="badge bg-light text-primary" th:utext="${mail.date}"></span>
+                <h5 class="mb-0" th:utext="'Expéditeur : '+${mail.sender}"></h5><h5 th:text="${mail.sender==user.userid}?'( Vous )':''" ></h5>
+                <span th:class="${mail.type.name()=='RECU'}?'card-header bg-primary text-white':'card-header bg-light text-dark'" th:utext="${mail.date}"></span>
             </div>
         </div>
         <div class="card-body">
@@ -35,14 +91,22 @@
 
 
         </div>
-        <div class="card-footer text-end">
-            <form th:action="@{/deleteFromServer}+'?id='+${mail.id}" method="post">
-                <input hidden="hidden" name="uniqueId" th:value="${mail.id}">
-            <button type="submit" onclick="return confirm('Etes vous sur de vouloir supprimer definitivement ce message : \n Cette operation est irreversible ?')" class="btn btn-outline-primary btn-sm">Supprimer</button></form>
-            <a href="#" class="btn btn-outline-danger btn-sm">Repondre</a>
-        </div>
+
     </div>
+
+
+
+
+
+
+
+
+
+
+
 </div>
+
+
 
 <!-- Bootstrap JS Bundle with Popper -->
 </body>
