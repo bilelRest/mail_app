@@ -30,6 +30,7 @@ import javax.transaction.Transactional;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -159,6 +160,18 @@ public class Admin {
         model.addAttribute("keyword",keyword);
 
         model.addAttribute("size", nombreNonLu);
+//        List<MailEntity> mailEntityList = new ArrayList<>();
+//        Set<String> senders = new HashSet<>(); // Pour suivre les expéditeurs uniques
+//
+//        for (MailEntity mail : mailEntityList2) {
+//            if(!mail.getIsRead()){
+//                senders.add(mail.getSender());
+//            }
+//            if (senders.add(mail.getSender())) { // `add` retourne `true` si le sender est nouveau
+//                mailEntityList.add(mail);
+//            }
+//        }
+
 
         model.addAttribute("messages", mailEntityList2);
 
@@ -391,8 +404,12 @@ System.out.println("reply recu : "+reply);
             MailEntity mailEntity = mail.get();
             mailEntity.setIsRead(true);
             mailRepo.save(mailEntity);
-            String uniquereply=mail.get().getReplyId();
+
             String senders=mail.get().getSender();
+            String mailSender=(mail.get().getSender()==findLogged().get().getUserid())?mail.get().getDestinataire():mail.get().getSender();
+            model.addAttribute("mailSender",mailSender);
+            model.addAttribute("idMessage",id);
+
 
 
             List<MailEntity> relatedMails = mailRepo.trouverMail(senders);

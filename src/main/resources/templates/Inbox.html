@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="template">
+      layout:decorate="template" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,104 +10,138 @@
     <script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="/webjars/bootstrap-icons/1.10.5/font/bootstrap-icons.css">
 
+
 </head>
 <body>
 <div layout:fragment="content1" class="container my-4">
-    <div class="card-footer d-block ">
-        <form th:action="@{/deleteFromServer}+'?id='+${mails[0].id}" method="post">
-            <input hidden="hidden" name="uniqueId" th:value="${mails[0].id}">
-            <button type="button" onclick="showreply()" class="btn btn-outline-success btn-sm">Repondre</button>
+    <h3 th:utext="'Discussion avec : '+${mailSender}"></h3>
+    <div style="margin-top:10px; margin-bottom:10px" class="card shadow-sm"
+         th:each="mail : ${mails}"
+         th:id="'message-' + ${mail.id}"
+         th:class="${mail.id == idMessage} ? 'card shadow-sm selected-message' : 'card shadow-sm'">
 
-            <button  style="margin-left:80%" type="submit"  onclick="return confirm('Etes vous sur de vouloir supprimer definitivement ce message : \n Cette operation est irreversible ?')" class="btn btn-outline-danger btn-sm">Supprimer</button></form>
-    </div>
-    <div  id="reply" style="display:none">
-        <!-- Formulaire -->
-        <form method="post" th:action="@{/sendMail(reply=true, id=${mails[0].id})}"
-              id="mailForm" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label for="to" class="form-label">Destinataire</label>
-                <input type="email" name="to" th:value="${mails[0].sender}" class="form-control" id="to" placeholder="Entrez l'email du destinataire" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="subject" class="form-label">Objet</label>
-                <input name="subject" th:value="'Re:'+${mails[0].subject}" type="text"  class="form-control" id="subject" placeholder="Entrez l'objet de l'email" required>
-            </div>
-            <input name="id" type="text"  id="id" hidden="hidden">
-
-            <div class="mb-3">
-                <label for="message" class="form-label">Texte de l'email</label>
-                <textarea class="form-control" name="message" id="message" rows="5" placeholder="Rédigez votre message ici" required>
-
-                </textarea>
-            </div>
-            <div>
-                <a ></a><br><br>
-            </div>
-
-
-
-            <div >
-                <label for="jointe" class="form-label">Pièce jointe</label>
-                <input type="file" name="jointe" id="jointe" class="form-control">
-            </div>
-            <input type="hidden" id="hid" name="draft" value="0">
-            <div class="d-flex justify-content-between">
-                <button type="submit" class="btn btn-primary">Envoyer</button>
-                <button type="button" onclick="saveAsDraft()" class="btn btn-secondary">Enregistrer comme brouillon</button>
-            </div>
-        </form>
-    </div>
-
-    <script >
-        var show=document.getElementById('reply')
-        function showreply(){
-            show.style.display ="block";
-
-        }
-    </script>
-    <div style="margin-top:10px;margin-bottom:10px" class="card shadow-sm" th:each="mail:${mails}">
-
-        <div th:class="${mail.type.name()=='RECU'}?'card-header bg-primary text-white':'card-header bg-light text-dark'">
+        <div th:id="'message-' + ${mail.id}"
+             th:class="${mail.type.name() == 'ENVOYEE' ? 'card-header bg-light text-dark'
+                   : mail.isRead ? 'card-header bg-primary text-light'
+                   : 'card-header bg-primary text-dark fw-bold'}">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0" th:utext="'Expéditeur : '+${mail.sender}"></h5><h5 th:text="${mail.sender==user.userid}?'( Vous )':''" ></h5>
-                <span th:class="${mail.type.name()=='RECU'}?'card-header bg-primary text-white':'card-header bg-light text-dark'" th:utext="${mail.date}"></span>
+                <h5 class="mb-0" th:utext="${mail.sender==user.userid}?'Vous':${mail.sender}"></h5>
+                <span th:class="${mail.type.name()=='RECU'}?'card-header bg-primary text-white':'card-header bg-light text-dark'"
+                      th:utext="${mail.date}"></span>
             </div>
         </div>
+
         <div class="card-body">
             <h4 class="card-title" th:utext="${mail.subject}"></h4>
-
             <div th:utext="${mail.body}"></div>
             <div class="attachments">
                 <div th:if="${mail.joinedName != null and mail.pathJoined != null}">
                     <p>Pièces jointes :</p>
                     <ul>
                         <li>
-                            <a th:href=" ${mail.pathJoined}" th:text="${mail.joinedName}" rel="noopener noreferrer" target="_blank"></a>
+                            <a th:href="${mail.pathJoined}" th:text="${mail.joinedName}" rel="noopener noreferrer" target="_blank"></a>
                         </li>
                     </ul>
                 </div>
             </div>
 
+            <div class="card-footer d-block">
+                <form th:action="@{/delete}+'?id='+${mail.id}" method="post">
+                    <input hidden="hidden" name="uniqueId" th:value="${mail.id}">
+                    <button title="Répondre" type="button" th:attr="onclick='showreply(' + ${mail.id} + ')'" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-reply"></i>
+                    </button>
 
+
+
+                    <button title="Placer dans la corbeille" style="margin-left:80%" type="submit"
+                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer définitivement ce message ? Cette opération est irréversible.')"
+                            class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </form>
+
+
+                <div th:id="'reply-' + ${mail.id}" style="display:none">
+                    <form method="post" th:action="@{/sendMail(reply=true, id=${mail.id})}" id="mailForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="to" class="form-label">Destinataire</label>
+                            <input type="email" name="to" th:value="${mail.sender}" class="form-control" id="to" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Objet</label>
+                            <input name="subject" th:value="'Re: '+${mail.subject}" type="text" class="form-control" id="subject" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Texte de l'email</label>
+                            <textarea class="form-control" name="message" id="message" rows="5" required></textarea>
+                        </div>
+                        <div>
+                            <label for="jointe" class="form-label">Pièce jointe</label>
+                            <input type="file" name="jointe" id="jointe" class="form-control">
+                        </div>
+                        <input type="hidden" id="hid" name="draft" value="0">
+                        <div class="d-flex justify-content-between">
+                            <button title="Envoyer" type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
+                            <button title="Annuler" type="button" onclick="masquerReply('${mail.id}')" class="btn btn-secondary">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+
+
+                <script>
+                    function showreply(id) {
+                        console.log('ID reçu = ' + id); // Vérifiez la valeur de 'id'
+                        const replyDiv = document.getElementById('reply-' + id);
+                        console.log('Élément trouvé : ', replyDiv); // Affichez l'élément trouvé
+
+                        if (replyDiv) {
+                            replyDiv.style.display = "block";
+                        } else {
+                            console.error('Élément introuvable avec l\'ID : reply-' + id);
+                        }
+                    }
+
+                </script>
+
+
+                <script>
+                    window.onload = function() {
+                        viewSelect();
+                    };
+                    function viewSelect() {
+                        console.log('viewSelect function is called');
+
+                        // Récupère le chemin complet
+                        var path = window.location.pathname;
+                        console.log('Path:', path);
+
+                        // Extrait l'ID depuis le chemin
+                        var pathSegments = path.split('/'); // Divise le chemin en segments
+                        var messageId = pathSegments[pathSegments.length - 1]; // Dernier segment (60)
+
+                        console.log('Message ID from Path:', messageId);
+
+                        if (messageId) {
+                            var messageElement = document.getElementById('message-' + messageId);
+                            if (messageElement) {
+                                messageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                console.log('Scrolled to the message:', messageId);
+                            } else {
+                                console.error('No element found with ID:', 'message-' + messageId);
+                            }
+                        } else {
+                            console.warn('No message ID found in the path.');
+                        }
+                    }
+
+                </script>
+            </div>
         </div>
-
     </div>
-
-
-
-
-
-
-
-
-
-
-
 </div>
-
-
-
-<!-- Bootstrap JS Bundle with Popper -->
 </body>
 </html>
