@@ -31,12 +31,7 @@
             </div>
             <input name="id" type="text" th:value="${mailDetails.id}" id="id" hidden="hidden">
 
-            <div class="mb-3">
-                <label for="message" class="form-label">Texte de l'email</label>
-                <textarea class="form-control" name="message" id="message" rows="5" placeholder="Rédigez votre message ici" required>
-                    [[${mailDetails.message}]]
-                </textarea>
-            </div>
+            <textarea class="form-control text-dark" name="message" id="message" rows="5" placeholder="Rédigez votre message ici" th:utext="${mailDetails.message}"></textarea>
             <div>
                 <a th:href="${mailDetails.pathJointe} " th:text="${mailDetails.nameJointe}"></a><br><br>
             </div>
