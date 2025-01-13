@@ -9,12 +9,29 @@
     <link rel="stylesheet" href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css">
     <script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
     <style>
+        body {
+            display: flex;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
         .sidebar {
             width: 300px;
             background-color: #f7f9fc;
             height: 100vh;
             padding: 20px;
-
+            position: fixed; /* Barre latérale fixe */
+            top: 0;
+            left: 0;
+            overflow-y: auto; /* Ajoute un défilement si nécessaire dans la barre latérale */
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .content {
+            margin-left: 300px; /* Décalage pour le contenu principal */
+            padding: 20px;
+            flex-grow: 1;
+            height: 100%;
+            overflow-y: auto; /* Ajoute un défilement dans le contenu principal */
         }
         .sidebar h4 {
             font-size: 1.2rem;
@@ -48,62 +65,56 @@
             text-transform: uppercase;
             color: #5f6368;
         }
-
     </style>
 </head>
 <body>
-<div class="container-fluid d-flex">
-<div class="d-flex">
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="d-block align-items-center mb-4">
-            <img src="/ApiRestMail.png" alt="mail.apirest.tech" width="200" height="200">
-
-        </div>
-
-        <a class="btn btn-primary mb-4" th:href="@{/new}">
-            Nouveau message  <i class="bi bi-plus"></i>
-        </a>
-
-        <ul class="nav flex-column">
-            <li class="nav-item ">
-                <a class="nav-link" th:href="@{/accueilMail}">
-                    <span>Boîte de réception</span>
-                    <span th:class="${size>0}?'badge bg-primary':'d-none'"><h6 th:text="${size}"></h6></span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" th:href="@{/sent}">
-                    Messages envoyés
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" th:href="@{/draft}">
-                    Brouillons
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" th:href="@{/recycle}">
-                    Corbeille
-                </a>
-            </li>
-
-        </ul>
-        <div style="margin-top:50%">
-            <h6 style="margin-top:5px" th:text="${user.realname.toUpperCase()}"></h6>
-            <a class="btn btn-secondary" th:href="@{/deconnect}">Déconneter</a>
-        </div>
-
-
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="d-block align-items-center mb-4">
+        <img src="/ApiRestMail.png" alt="mail.apirest.tech" width="200" height="200">
     </div>
 
+    <a class="btn btn-primary mb-4" th:href="@{/new}">
+        Nouveau message  <i class="bi bi-plus"></i>
+    </a>
+
+    <ul class="nav flex-column">
+        <li class="nav-item ">
+            <a class="nav-link" th:href="@{/accueilMail}">
+                <span>Boîte de réception</span>
+                <span th:class="${size>0}?'badge bg-primary':'d-none'">
+                        <h6 th:text="${size}"></h6>
+                    </span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/sent}">
+                Messages envoyés
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/draft}">
+                Brouillons
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/recycle}">
+                Corbeille
+            </a>
+        </li>
+    </ul>
+
+    <div style="margin-top:50%">
+        <h6 style="margin-top:5px" th:text="${user.realname.toUpperCase()}"></h6>
+        <a class="btn btn-secondary" th:href="@{/deconnect}">Déconnecter</a>
+    </div>
 </div>
-<div class="container-fluid">
+
+<!-- Contenu principal -->
+<div class="content">
     <section layout:fragment="content1">
         <!-- Contenu de la section -->
     </section>
-</div>
 </div>
 </body>
 </html>

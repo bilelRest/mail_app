@@ -192,6 +192,7 @@ public class Admin {
             mailDetails.setPathJointe( mail.get().getPathJoined());
             mailDetails.setNameJointe(mail.get().getJoinedName());
             mailDetails.setMessage(mail.get().getBody());
+            System.out.println("corp du message : "+mail.get().getBody());
             model.addAttribute("mailDetails", mailDetails);
             return "newMail";
         }
@@ -206,10 +207,14 @@ public class Admin {
     @GetMapping(value = "/sent")
     public String sentEmail(Model model) {
         List<MailEntity> mailEntityList2 = mailRepo.findAllByMailUser(findLogged().get());
+        System.out.println("Mail  trouvé de taille "+mailEntityList2.size());
         List<MailEntity> mailEntityList = new ArrayList<>();
         for (MailEntity mail : mailEntityList2) {
+            System.out.println("Type de lemail :  "+mail.getType());
+
             if (mail.getType() == EmailType.ENVOYEE) {
                 mailEntityList.add(mail);
+                System.out.println("mail envouyer ajouté "+mail.getDestinataire());
             }
         }
         int nombreNonLu = mailRepo.countUnreadEmails(findLogged().get());
@@ -282,6 +287,8 @@ System.out.println("reply recu : "+reply);
             Optional<MailEntity> mailEntity2=mailRepo.findById(id);
             newReply=mailDetails.fromsender+mailDetails.to+UUID.randomUUID();
             mailEntity2.get().setReplyId(newReply);
+            mailEntity2.get().setIsRead(true);
+            mailRepo.save(mailEntity2.get());
 
         }
         if (id!=null && !reply){
@@ -294,6 +301,7 @@ System.out.println("reply recu : "+reply);
                 findLogged().get().getUserid().split("@")[0] + "/";
 
         // Remplissage des données
+        mailEntity.setMailUser(findLogged().get());
         mailEntity.setSender(findLogged().get().getUserid());
         mailEntity.setDate(LocalDateTime.now().toString());
         mailEntity.setIsRead(true);
@@ -301,6 +309,7 @@ System.out.println("reply recu : "+reply);
         mailEntity.setSubject(mailDetails.getSubject());
         mailEntity.setDestinataire(mailDetails.getTo());
         mailEntity.setType(isDraft ? EmailType.BROUILLON : EmailType.ENVOYEE);
+        System.out.println("Type de mail capturé : "+mailEntity.getType());
         mailEntity.setReplyId(newReply);
 
         if (mailDetails.getJointe() != null && !mailDetails.getJointe().isEmpty()) {
@@ -335,6 +344,11 @@ System.out.println("reply recu : "+reply);
                     null
             );
         }
+        mailEntity.setType(isDraft ? EmailType.BROUILLON : EmailType.ENVOYEE);
+        mailEntity.setBody(mailDetails.message);
+        System.out.println(mailEntity.getBody());
+
+        mailEntity.setIsRead(true);
 
         mailRepo.save(mailEntity);
         return "redirect:/accueilMail";

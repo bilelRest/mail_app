@@ -9,7 +9,15 @@
     <link rel="stylesheet" href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css">
     <script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="/webjars/bootstrap-icons/1.10.5/font/bootstrap-icons.css">
+    <script defer>
+        function saveAsDraft() {
+            // Modifier la valeur de l'input caché
+            document.getElementById('hid').value = 1;
 
+            // Soumettre le formulaire
+            document.getElementById('mailForm').submit();
+        }
+    </script>
 
 </head>
 <body>
@@ -33,9 +41,9 @@
 
         <div class="card-body">
             <h4 class="card-title" th:utext="${mail.subject}"></h4>
-            <div th:utext="${mail.body}"></div>
-            <div class="attachments">
-                <div th:if="${mail.joinedName != null and mail.pathJoined != null}">
+            <div th:utext="${mail.body}"></div><br>
+            <div th:class="${mail.joinedName == '' || mail.pathJoined==''}?'d-none':'attachments'" >
+                <div >
                     <p>Pièces jointes :</p>
                     <ul>
                         <li>
@@ -55,14 +63,14 @@
 
 
                     <button title="Placer dans la corbeille" style="margin-left:80%" type="submit"
-                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer définitivement ce message ? Cette opération est irréversible.')"
+                            onclick="return confirm('Êtes-vous sûr de vouloir placer ce message dans la corbeille ? ')"
                             class="btn btn-outline-danger btn-sm">
                         <i class="bi bi-trash3"></i>
                     </button>
                 </form>
 
 
-                <div th:id="'reply-' + ${mail.id}" style="display:none">                    
+                <div th:id="'reply-' + ${mail.id}" style="display:none">
                     <form method="post" th:action="@{/sendMail(reply=true, id=${mail.id})}" id="mailForm" enctype="multipart/form-data">
                         <div class="mb-3">
                             <label for="to" class="form-label">Destinataire</label>
@@ -83,7 +91,8 @@
                         <input type="hidden" id="hid" name="draft" value="0">
                         <div class="d-flex justify-content-between">
                             <button title="Envoyer" type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
-                            <button title="Annuler" type="button" onclick="masquerReply('${mail.id}')" class="btn btn-secondary">
+                           <button title="Enregistrer comme brouillon" onclick="saveAsDraft()" type="button" class="btn btn-info"><i class="bi bi-save"></i> </button>
+                            <button title="Annuler" type="button" th:attr="onclick='masquerreply(' + ${mail.id} + ')'" class="btn btn-secondary">
                                 <i class="bi bi-x"></i>
                             </button>
                         </div>
@@ -92,16 +101,22 @@
 
 
 
+
                 <script>
                     function showreply(id) {
-                        console.log('ID reçu = ' + id); // Vérifiez la valeur de 'id'
                         const replyDiv = document.getElementById('reply-' + id);
-                        console.log('Élément trouvé : ', replyDiv); // Affichez l'élément trouvé
 
                         if (replyDiv) {
                             replyDiv.style.display = "block";
-                        } else {
-                            console.error('Élément introuvable avec l\'ID : reply-' + id);
+                        }
+                    }
+                    function masquerreply(id) {
+
+                        const replyDiv = document.getElementById('reply-' + id);
+
+
+                        if (replyDiv) {
+                            replyDiv.style.display = "none";
                         }
                     }
 
@@ -113,30 +128,21 @@
                         viewSelect();
                     };
                     function viewSelect() {
-                        console.log('viewSelect function is called');
 
                         // Récupère le chemin complet
                         var path = window.location.pathname;
-                        console.log('Path:', path);
 
                         // Extrait l'ID depuis le chemin
                         var pathSegments = path.split('/'); // Divise le chemin en segments
                         var messageId = pathSegments[pathSegments.length - 1]; // Dernier segment (60)
 
-                        console.log('Message ID from Path:', messageId);
 
                         if (messageId) {
                             var messageElement = document.getElementById('message-' + messageId);
                             if (messageElement) {
                                 messageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                console.log('Scrolled to the message:', messageId);
-                            } else {
-                                console.error('No element found with ID:', 'message-' + messageId);
-                            }
-                        } else {
-                            console.warn('No message ID found in the path.');
-                        }
-                    }
+
+                    }}}
 
                 </script>
             </div>
