@@ -22,20 +22,38 @@
 </head>
 <body>
 <div layout:fragment="content1" class="container my-4">
-    <h3 th:utext="'Discussion avec : '+${mailSender}"></h3>
-    <div style="margin-top:10px; margin-bottom:10px" class="card shadow-sm"
+    <h3 class="text-primary" th:utext="'Discussion avec : '+${mailSender}"></h3><br>
+   <div class="card-header d-flex">
+       <div > <h5 class="text-primary" th:utext="'Reçu : '+${recu}"></h5><h5 class="text-primary"> <i class="bi bi-box-arrow-in-down "></i></h5></div>
+    <div style="margin-left:30%;margin-right:30%"><h5 class="text-secondary" th:utext="'Envoyer : '+${envoyer}"></h5><h5 class="text-secondary"> <i class="bi bi-box-arrow-up"></i></h5></div>
+       <div><h5 class="text-success" th:utext="'Total échangés : '+${envoyer+recu}"></h5><h5 class="text-success" ><i class="bi bi-arrow-down-up"></i></h5></div></div>
+    <br>
+
+
+    <div style="margin-top:10px; margin-bottom:10px" class="card shadow-sm "
          th:each="mail : ${mails}"
          th:id="'message-' + ${mail.id}"
          th:class="${mail.id == idMessage} ? 'card shadow-sm selected-message' : 'card shadow-sm'">
 
         <div th:id="'message-' + ${mail.id}"
              th:class="${mail.type.name() == 'ENVOYEE' ? 'card-header bg-light text-dark'
-                   : mail.isRead ? 'card-header bg-primary text-light'
-                   : 'card-header bg-primary text-dark fw-bold'}">
+                   : mail.isRead ? 'card-header bg-info text-light'
+                   : 'card-header bg-primary text-light fw-bold'}">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0" th:utext="${mail.sender==user.userid}?'Vous':${mail.sender}"></h5>
-                <span th:class="${mail.type.name()=='RECU'}?'card-header bg-primary text-white':'card-header bg-light text-dark'"
-                      th:utext="${mail.date}"></span>
+                <span th:class="${not mail.isRead?'d-block':'d-none'}">
+                    <a th:href="${not mail.isRead ? '/setNonLu/' + mail.id + '?inbox=true' : '#'}"
+                       title="Marquer comme lu" class="btn btn-outline-primary text-light"><h4><i class="bi bi-envelope-check"></i> </h4></a></span>
+                <span th:class="${mail.type.name() == 'RECU' and mail.isRead ?
+                    'card-header bg-info text-light' :
+                    (mail.type.name() == 'RECU' and not mail.isRead ?
+                    'card-header bg-primary text-light' :
+                    'card-header bg-light text-dark')}"
+                      th:utext="${mail.date}">
+</span>
+
+
+
             </div>
         </div>
 
@@ -54,9 +72,10 @@
             </div>
 
             <div class="card-footer d-block">
-                <form th:action="@{/delete}+'?id='+${mail.id}" method="post">
-                    <input hidden="hidden" name="uniqueId" th:value="${mail.id}">
-                    <button title="Répondre" type="button" th:attr="onclick='showreply(' + ${mail.id} + ')'" class="btn btn-outline-success btn-sm">
+                <form th:action="@{/delete/{id}(id=${mail.id})}" method="get">
+                    <input type="hidden" name="inbox" th:value="true">
+                   <!-- <input hidden="hidden" name="id" th:value="${mail.id}">-->
+                    <button title="Répondre" type="button" th:attr="onclick='showreply(' + ${mail.id} + ')'" th:class="${mail.type.name()=='RECU'?'btn btn-outline-success btn-sm':'d-none'}">
                         <i class="bi bi-reply"></i>
                     </button>
 

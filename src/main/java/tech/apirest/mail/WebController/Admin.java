@@ -133,8 +133,13 @@ public class Admin {
 
     @GetMapping(value = "/accueilMail")
     public String accueilMail(Model model,
-                              @RequestParam(value = "keyword",defaultValue = "")String keyword,@RequestParam(value = "page",defaultValue = "0")int page,@RequestParam(value = "size",defaultValue = "9")int size) throws MessagingException, IOException {
+                              @RequestParam(value = "keyword",defaultValue = "")String keyword,
+                              @RequestParam(value = "page",defaultValue = "0")int page,
+                              @RequestParam(value = "size",defaultValue = "9")int size,
+                              @RequestParam(value = "sent",defaultValue = "",required = false)String sent) throws MessagingException, IOException {
         model.addAttribute("user", findLogged().get());
+        model.addAttribute("sent",sent);
+        System.out.println("Valeur recu de sent "+sent);
 
          List<MailEntity> mailEntityListImap=imapMail.readEmails(findLogged().get().getUserid(),findLogged().get().getTt(),null);
         if (!mailEntityListImap.isEmpty()){
@@ -281,6 +286,7 @@ public class Admin {
 System.out.println("Id recu = "+id);
 System.out.println("reply recu : "+reply);
         boolean isDraft = mailDetails.isDraft();
+        boolean sent =false;
         MailEntity mailEntity=new MailEntity();
         String newReply="";
         if(id!=null&&reply){
@@ -323,7 +329,7 @@ System.out.println("reply recu : "+reply);
             ftpService.uploadFile(new ByteArrayInputStream(fileContent), random + originalFilename);
 
             if (!isDraft) {
-                emailController.sendEmail(
+              try{  emailController.sendEmail(
                         mailDetails.getTo(),
                         mailDetails.getSubject(),
                         mailDetails.getMessage(),
@@ -332,17 +338,27 @@ System.out.println("reply recu : "+reply);
                         originalFilename,
                         fileContent
                 );
+              sent=true;
+              }catch (Exception e){
+
+              }
             }
         } else if (!isDraft) {
-            emailController.sendEmail(
-                    mailDetails.getTo(),
-                    mailDetails.getSubject(),
-                    mailDetails.getMessage(),
-                    findLogged().get().getUserid(),
-                    findLogged().get().getTt(),
-                    null,
-                    null
-            );
+         try {
+             emailController.sendEmail(
+                     mailDetails.getTo(),
+                     mailDetails.getSubject(),
+                     mailDetails.getMessage(),
+                     findLogged().get().getUserid(),
+                     findLogged().get().getTt(),
+                     null,
+                     null
+             );
+             sent=true;
+         }catch (Exception e){
+
+         }
+
         }
         mailEntity.setType(isDraft ? EmailType.BROUILLON : EmailType.ENVOYEE);
         mailEntity.setBody(mailDetails.message);
@@ -351,15 +367,21 @@ System.out.println("reply recu : "+reply);
         mailEntity.setIsRead(true);
 
         mailRepo.save(mailEntity);
-        return "redirect:/accueilMail";
+        return "redirect:/accueilMail?sent="+sent;
     }
 
 
 
     @GetMapping(value = "/setNonLu/{id}")
-    public String SetNonLu(Model model, @PathVariable(value = "id" )Long id,@RequestParam(value = "page",defaultValue = "0")int page) throws MessagingException {
+    public String SetNonLu(Model model, @PathVariable(value = "id" )Long id,
+                           @RequestParam(value = "page",defaultValue = "0")int page,
+                           @RequestParam(value="inbox",required = false)boolean inbox) throws MessagingException {
 
         Optional<MailEntity> mail=mailRepo.findById(id);
+        if (inbox){
+            mail.get().setIsRead(true);
+            return "redirect:/inbox/"+id;
+        }
         model.addAttribute("page",page);
         if(mail.get()!=null){
             mail.get().setIsRead(false);
@@ -368,16 +390,49 @@ System.out.println("reply recu : "+reply);
         return "redirect:/accueilMail?page="+page;
     }
     @GetMapping(value = "/delete/{id}")
-    public String DeleteMessage(Model model, @PathVariable(value = "id" )Long id,@RequestParam(value = "page",defaultValue = "0")int page) throws MessagingException {
+    public String DeleteMessage(Model model,
+                                @PathVariable("id") Long id,
+                                @RequestParam(value = "page", defaultValue = "0") int page,
+                                @RequestParam(value = "inbox", required = false,defaultValue = "") String inbox,
+                                @RequestParam(value = "sended",required = false,defaultValue = "")String sended) throws MessagingException {
+        System.out.println("Valeur inbox reçue : " + inbox);
+        System.out.println("Id recu = "+id);
 
-        Optional<MailEntity> mail=mailRepo.findById(id);
-        model.addAttribute("page",page);
-        if(mail.get()!=null){
+        Optional<MailEntity> mail = mailRepo.findById(id);
+
+        model.addAttribute("page", page);
+        if (mail.isPresent()) {
             mail.get().setType(EmailType.DELETED);
+            mailRepo.save(mail.get());
+        }
+        if(sended.equals("true")){
+            List<MailEntity> list=mailRepo.findAllByMailUser(findLogged().get());
+            if (!list.isEmpty()){
+                for (MailEntity mail1:list){
+                    if(mail1.getType().equals(EmailType.ENVOYEE)){
+                        return "redirect:/sended?id=" + mail1.getId();
+                    }
+                }
+            }
+
+            return "redirect:/sent";
+        }
+
+
+        if (inbox.equals("true")) {
+            List<MailEntity> list=mailRepo.findAllByMailUser(findLogged().get());
+            if(!list.isEmpty()){
+                for (MailEntity mail1:list){
+                    if(mail1.getType().equals(EmailType.ENVOYEE)){
+                        return "redirect:/inbox/" + mail1.getId();
+                    }
+                }
+            }
+            System.out.println("Redirection vers inbox / " + id);
 
         }
 
-        return "redirect:/accueilMail?page="+page;
+        return "redirect:/accueilMail?page=" + page;
     }
 
     @PostMapping(value = "/deleteFromServer")
@@ -410,7 +465,8 @@ System.out.println("reply recu : "+reply);
         int nombreNonLu = mailRepo.countUnreadEmails(findLogged().get());
         model.addAttribute("size", nombreNonLu);
         model.addAttribute("user", findLogged().get());
-
+        int envoyer=0;
+        int recu=0;
 
         Optional<MailEntity> mail = mailRepo.findById(id);
 
@@ -427,9 +483,23 @@ System.out.println("reply recu : "+reply);
 
 
             List<MailEntity> relatedMails = mailRepo.trouverMail(senders);
-            if(!relatedMails.isEmpty()){
+            List<MailEntity> mailEntityList2=new ArrayList<>();
 
-                model.addAttribute("mails", relatedMails);
+
+            if(!relatedMails.isEmpty()){
+                for (MailEntity mail1:relatedMails){
+                    if (mail1.getType().equals(EmailType.ENVOYEE)||mail1.getType().equals(EmailType.RECU)){
+                        mailEntityList2.add(mail1);
+                        if (mail1.getType().equals(EmailType.ENVOYEE)){
+                            envoyer=envoyer+1;
+                        }if(mail1.getType().equals(EmailType.RECU)){
+                            recu=recu+1;
+                        }
+
+                    }
+                }
+
+                model.addAttribute("mails", mailEntityList2);
                 System.out.println("la liste n'est pas vide et sa longueur est "+relatedMails.size());}
             else {
                 List<MailEntity> mailEntityList=new ArrayList<>();
@@ -439,9 +509,62 @@ System.out.println("reply recu : "+reply);
             }
 
         }
-
+        model.addAttribute("envoyer",envoyer);
+        model.addAttribute("recu",recu);
         return "Inbox";
     }
+    @GetMapping(value = "/sended")
+    public String sended(Model model, @RequestParam(value = "id", required = true) Long id) {
+        // Compte les emails non lus
+        int nombreNonLu = mailRepo.countUnreadEmails(findLogged().get());
+        model.addAttribute("size", nombreNonLu);
+
+        // Utilisateur connecté
+        var loggedUser = findLogged().get();
+        model.addAttribute("user", loggedUser);
+
+        // Initialisation
+        int envoyer = 0;
+
+        // Recherche du mail par ID
+        Optional<MailEntity> mailOpt = mailRepo.findById(id);
+        if (mailOpt.isEmpty()) {
+            model.addAttribute("error", "Message introuvable");
+            return "sended";
+        }
+
+        // Mise à jour de l'état du mail
+        MailEntity mailEntity = mailOpt.get();
+        mailEntity.setIsRead(true);
+        mailRepo.save(mailEntity);
+
+        // Récupère l'expéditeur
+        String sender = mailEntity.getSender();
+        model.addAttribute("idMessage", id);
+
+        // Trouve les mails liés à l'expéditeur
+        List<MailEntity> relatedMails = mailRepo.trouverMail(sender);
+        List<MailEntity> mailEntityList2 = new ArrayList<>();
+
+        for (MailEntity mail : relatedMails) {
+            if (mail.getMailUser() != null) {
+                if (mail.getType() == EmailType.ENVOYEE &&
+                        mail.getMailUser().getUserid().equals(loggedUser.getUserid())) {
+                    mailEntityList2.add(mail);
+                    envoyer++;
+                }
+            } else {
+                mailRepo.delete(mail);
+            }
+        }
+
+        // Ajout des données au modèle
+        model.addAttribute("mails", mailEntityList2);
+        model.addAttribute("envoyer", envoyer);
+
+        return "sended";
+    }
+
 
 
     @Data

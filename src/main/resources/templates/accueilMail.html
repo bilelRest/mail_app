@@ -13,6 +13,13 @@
     <div>
         <h1>Boîte de réception</h1>
     </div>
+    <br>
+    <div th:class="${sent=='true' or sent=='false' ? 'alert alert-dismissible fade show' : 'd-none'}"
+         th:classappend="${sent=='true' ? 'alert-success' : 'alert-danger'}" role="alert">
+        <h4 th:text="${sent=='true' ? 'Message envoyé avec succès!' : 'Échec: message non envoyé.'}"></h4>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+
     <div th:if="${messages == null || messages.isEmpty()}" class="alert alert-info">
         Aucun message dans la boîte de réception.
     </div>

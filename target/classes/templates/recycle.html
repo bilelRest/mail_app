@@ -12,8 +12,8 @@
         <div style="width: 100%" th:if="${messages != null}">
             <div class="card" style="margin-top: 5px; width: 100%" th:each="message,ind : ${messages}">
 
-                <a th:href="@{/inbox/}+${message.id}" th:class="${message.isRead}?'btn btn-outline-success':'btn btn-outline-primary'">
-                    <div class="card-header " style="display: flex; align-items: center; padding: 10px;">
+               <!-- <a th:href="@{/inbox/}+${message.id}" th:class="${message.isRead}?'btn btn-outline-success':'btn btn-outline-primary'">
+                   --><a class="btn btn-secondary" href="#"> <div class="card-header " style="display: flex; align-items: center; padding: 10px;">
 
                         <!-- Affichage de l'expéditeur -->
                         <div style="flex: 1; padding: 5px; white-space: nowrap;">
