@@ -13,12 +13,14 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
     </div><br>
     <div>
-        <div th:class="${success!=''?'alert alert-dismissible fade show alert-success' : 'd-none'}">
+        <div th:if="${success != null}"
+             class="alert alert-dismissible fade show alert-success"
+             role="alert">
             <h4 th:text="${success}"></h4>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-        </div><br>
-        <div>
-    <form th:action="@{/checkPwd}" method="POST" onsubmit="return ChekFrom()">
+        </div>
+
+        <form th:action="@{/checkPwd}" method="POST" onsubmit="return ChekFrom()">
 
         <div class="mb-3">
             <label for="oldPassword" class="form-label">Mot de passe</label>
