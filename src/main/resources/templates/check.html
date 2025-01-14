@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="template">
+<head>
+    <meta charset="UTF-8">
+    <title>Check</title>
+</head>
+<body>
+<div layout:fragment="content1" style="display:flex" class="container my-2">
+    <div class="container d-block">
+    <div th:class="${error!=''?'alert alert-dismissible fade show alert-danger' : 'd-none'}">
+        <h4 th:text="${error}"></h4>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div><br>
+    <div>
+        <div th:class="${success!=''?'alert alert-dismissible fade show alert-success' : 'd-none'}">
+            <h4 th:text="${success}"></h4>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div><br>
+        <div>
+    <form th:action="@{/checkPwd}" method="POST" onsubmit="return ChekFrom()">
+
+        <div class="mb-3">
+            <label for="oldPassword" class="form-label">Mot de passe</label>
+            <input type="password" class="form-control" id="oldPassword" name="password" placeholder="Ancien un mot de passe" required>
+        </div>
+        <div class="mb-3">
+            <label for="newPassword" class="form-label">Nouveau Mot de passe</label>
+            <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Nouveau un mot de passe" required>
+        </div>
+        <!-- Confirmation du mot de passe -->
+        <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirmez le mot de passe</label>
+            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirmez votre mot de passe" required>
+        </div>
+
+        <!-- Bouton de soumission -->
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary mb-3">Changer</button>
+        </div>
+    </form>
+    </div>
+</div>
+</div>
+<script>
+function chekPass() {
+var pas = document.getElementById("newPassword").value;
+var confirm = document.getElementById("confirmPassword").value;
+if (pas === confirm) {
+return true;
+} else {
+alert("Les mots de passe ne correspondent pas !");
+return false;
+}
+}
+</script>
+</body>
+</html>

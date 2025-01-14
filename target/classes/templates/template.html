@@ -104,8 +104,8 @@
         </li>
     </ul>
 
-    <div style="margin-top:50%">
-        <h6 style="margin-top:5px" th:text="${user.realname.toUpperCase()}"></h6>
+    <div style="margin-top:45%">
+     <div style="display:inline-flex">   <h6 style="margin-top:5px" th:text="${user.realname.toUpperCase()}"></h6><a th:href="@{/check}">(Changer le mot de passe)</a></div>
         <a class="btn btn-secondary" th:href="@{/deconnect}">Déconnecter</a>
     </div>
 </div>

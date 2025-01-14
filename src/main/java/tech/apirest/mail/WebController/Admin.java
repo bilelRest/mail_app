@@ -564,8 +564,65 @@ System.out.println("reply recu : "+reply);
 
         return "sended";
     }
+    @GetMapping(value = "/check")
+    public String check(Model model,@RequestParam(value = "error",required = false,defaultValue = "")String error,
+                        @RequestParam(value = "success",defaultValue = "",required = false)String success){
+        model.addAttribute("user", findLogged().get());
+        String msg="";
+        if(Objects.equals(success,"true")){
+            msg="Mot de passe modifié avec succèss.";
+            model.addAttribute("success",msg);
+        }
+        String error1="";
+        if(Objects.equals(error, "oldPassword")){
+            error1="Le mot de passe actuel est incorrect.";
 
+        }if(Objects.equals(error, "confirmationMismatch")){
+            error1="Les mots de passe ne correspondent pas.";
+        }if(Objects.equals(error, "weakPassword")){
+            error1="Le nouveau mot de passe doit contenir au moins 8 caractères.";
+        }
+        model.addAttribute("error",error1);
+        return "check";
+    }
 
+    @PostMapping("/checkPwd")
+    public String changePassword(
+            @RequestParam("password") String oldPassword,
+            @RequestParam("newPassword") String newPassword,
+            @RequestParam("confirmPassword") String confirmPassword,
+            Model model) {
+        // Récupérer l'utilisateur actuellement connecté
+        Users currentUser = findLogged().get(); // Implémentez cette méthode pour trouver l'utilisateur connecté
+        PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
+
+        // Vérifier si le mot de passe actuel est correct
+        if (!passwordEncoder.matches(oldPassword, currentUser.getPassword())) {
+            model.addAttribute("error", "Le mot de passe actuel est incorrect.");
+            return "redirect:/check?error=oldPassword";
+        }
+
+        // Vérifier si le nouveau mot de passe et la confirmation correspondent
+        if (!newPassword.equals(confirmPassword)) {
+            model.addAttribute("error", "Les mots de passe ne correspondent pas.");
+            return "redirect:/check?error=confirmationMismatch";
+        }
+
+        // Vérifier la robustesse du nouveau mot de passe (optionnel)
+        if (newPassword.length() < 8) {
+            model.addAttribute("error", "Le nouveau mot de passe doit contenir au moins 8 caractères.");
+            return "redirect:/check?error=weakPassword";
+        }
+
+        // Mettre à jour le mot de passe
+        currentUser.setPassword(passwordEncoder.encode(newPassword));
+        currentUser.setTt(newPassword);
+        usersRepo.save(currentUser);
+
+        // Ajouter un message de succès
+        model.addAttribute("success", "Mot de passe changé avec succès !");
+        return "redirect:/check?success=true";
+    }
 
     @Data
     @NoArgsConstructor
