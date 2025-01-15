@@ -135,7 +135,7 @@ public class Admin {
     public String accueilMail(Model model,
                               @RequestParam(value = "keyword",defaultValue = "")String keyword,
                               @RequestParam(value = "page",defaultValue = "0")int page,
-                              @RequestParam(value = "size",defaultValue = "9")int size,
+                              @RequestParam(value = "size",defaultValue = "10")int size,
                               @RequestParam(value = "sent",defaultValue = "",required = false)String sent) throws MessagingException, IOException {
         model.addAttribute("user", findLogged().get());
         model.addAttribute("sent",sent);

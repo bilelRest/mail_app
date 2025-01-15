@@ -2,7 +2,7 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="template">
 <head>
-    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
     <title>Check</title>
 </head>
 <body>
@@ -24,21 +24,21 @@
 
         <div class="mb-3">
             <label for="oldPassword" class="form-label">Mot de passe</label>
-            <input type="password" class="form-control" id="oldPassword" name="password" placeholder="Ancien un mot de passe" required>
+            <input style="width:300px" type="password" class="form-control" id="oldPassword" name="password" placeholder="Ancien un mot de passe" required>
         </div>
         <div class="mb-3">
             <label for="newPassword" class="form-label">Nouveau Mot de passe</label>
-            <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Nouveau un mot de passe" required>
+            <input style="width:300px" type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Nouveau un mot de passe" required>
         </div>
         <!-- Confirmation du mot de passe -->
         <div class="mb-3">
             <label for="confirmPassword" class="form-label">Confirmez le mot de passe</label>
-            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirmez votre mot de passe" required>
+            <input style="width:300px" type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirmez votre mot de passe" required>
         </div>
 
         <!-- Bouton de soumission -->
         <div class="d-grid">
-            <button type="submit" class="btn btn-primary mb-3">Changer</button>
+            <button type="submit" style="width:100px" class="btn btn-primary ">Changer</button>
         </div>
     </form>
     </div>
