@@ -50,26 +50,32 @@
         <div class="row row-cols-1 ">
             <div class="col" th:each="message : ${messages}">
                 <div class="card h-100">
-                    <div  th:class="${message.isRead} ? 'card-header bg-light' : 'card-header bg-primary text-light'">
+                    <div th:class="${message.isRead} ? 'card-header bg-light border-info text-dark border-bottom-0  border-start border-5' : 'card-header bg-light border-primary text-dark border-bottom-0 fw-bold  border-end border-start border-5'">
                        <div class="d-flex"> <div class="flex-fill text-left">
                             <span th:text="${message.sender}"></span>
                         </div>
                         <div class="flex-fill text-center">
                             <span th:text="${message.subject}"></span>
                         </div>
+
                         <div class="flex-fill text-end">
                             <span th:text="${message.date}"></span>
                         </div>
+                           <div style="margin-left:5%" class="text-end">
+                               <span th:class="${message.joinedName!='' and message.pathJoined!=null ?'flex-fill text-end text-primary fw-bold':'d-none'}"> <a target="_blank"  th:href="${message.pathJoined}"> <i class="bi bi-paperclip" th:title="'Ce message contient une pièce jointe : '+${message.joinedName}"></i></a>
+</span>
+                           </div>
 
                         <!-- Boutons d'action masqués par défaut -->
                         <div class="ms-4 action-buttons">
                             <a class="btn btn-success btn-sm me-1" title="Ouvrir" th:href="@{/inbox/{id}(id=${message.id})}">
                                 <i class="bi bi-book"></i>
                             </a>
-                            <a th:href="${message.isRead ? '/setNonLu/' + message.id + '?page=' + currentPage : '#'}"
-                               th:class="${message.isRead ? 'btn btn-secondary btn-sm' : 'btn btn-secondary btn-sm disabled'}"
-                               th:title="${message.isRead ? 'Marquer comme non lu' : 'Déjà non lu'}">
-                                <i class="bi bi-app-indicator"></i>
+                            <a th:href="${'/setNonLu/' + message.id + '?page=' + currentPage }">
+
+                               <span class="btn btn-secondary btn-sm"
+                                   th:title="${message.isRead ? 'Marquer comme non lu' : 'Marquer comme  lu'}">
+                                <i th:class="${message.isRead ?'bi bi-app':'bi bi-app-indicator'}"></i></span>
                             </a>
                             <a onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce message ?')"
                                class="btn btn-danger btn-sm" title="Supprimer le message"
@@ -93,8 +99,8 @@
                 <a title="Page Précédente" class="page-link"
                    th:href="@{/accueilMail(page=${currentPage - 1}, keyword=${keyword})}">&laquo;</a>
             </li>
-            <li class="page-item" th:each="page, status : ${pages}" th:class="${status.index == currentPage ? ' active' : ''}">
-                <a title="Page en cours" class="page-link" th:text="${status.index + 1}"></a>
+            <li class="page-item" >
+                <a title="Page en cours" class="page-link" th:text="${currentPage+1}+'/'+${pages.length+1}"></a>
             </li>
             <li class="page-item" th:classappend="${currentPage == pages.length - 1} ? 'disabled'">
                 <a title="Page Suivante" class="page-link"

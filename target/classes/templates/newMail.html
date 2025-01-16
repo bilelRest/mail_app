@@ -3,12 +3,17 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="template">
 <head>
-    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
     <title>Messages envoyés</title>
     <script defer>
         function saveAsDraft() {
             // Modifier la valeur de l'input caché
             document.getElementById('hid').value = 1;
+           var jointe= document.getElementById('jointe').value
+            if (jointe && jointe.trim() !== "") {
+                alert("La pièce jointe sera enregistrée sur le serveur. \n Si vous souhaitez renvoyer le message, vous devez la télécharger et renseigner son chemin.");
+            }
+
 
             // Soumettre le formulaire
             document.getElementById('mailForm').submit();
@@ -34,11 +39,15 @@
             <textarea class="form-control text-dark" name="message" id="message" rows="5" placeholder="Rédigez votre message ici" th:utext="${mailDetails.message}"></textarea>
             <div>
                 <a th:href="${mailDetails.pathJointe} " th:text="${mailDetails.nameJointe}"></a><br><br>
+                <div th:class="${mailDetails.pathJointe != '' and mailDetails.nameJointe!=''?'alert alert-dismissible fade show alert-warning' : 'd-none'}"
+                      role="alert">
+                    <h6 >La pièce jointe est enregistrée sur le serveur. Si vous souhaitez renvoyer le message, vous devez la télécharger et renseigner son chemin.</h6>
+                </div>
             </div>
 
 
 
-            <div th:class="${mailDetails.pathJointe==null?'mb-3':'d-none'}">
+            <div class="mb-3 ">
                 <label for="jointe" class="form-label">Pièce jointe</label>
                 <input type="file" name="jointe" id="jointe" class="form-control">
             </div>

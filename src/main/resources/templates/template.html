@@ -8,37 +8,39 @@
     <link rel="stylesheet" href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css">
     <script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 </head>
+
 <body>
-<div class="d-flex">
-    <!-- Bouton pour afficher la barre latérale -->
-    <button class="btn btn-primary m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#emailSidebar"
+<!-- Bouton pour afficher la barre latérale -->
+<div style="position: fixed; top: 10px; left: 10px; z-index: 1030;">
+    <button title="Menu" class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#emailSidebar"
             aria-controls="emailSidebar">
-        ☰ Menu
+        ☰
     </button>
 </div>
 
-<!-- Barre latérale en tant que canvas -->
+<!-- Barre latérale (offcanvas) -->
 <div class="offcanvas offcanvas-start" tabindex="-1" id="emailSidebar" aria-labelledby="emailSidebarLabel">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title" id="emailSidebarLabel">Menu</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
+        <!-- Logo au centre -->
         <div class="d-block align-items-center mb-4 text-center">
             <img src="/ApiRestMail.png" alt="mail.apirest.tech" width="150" height="150">
         </div>
 
+        <!-- Bouton Nouveau Message -->
         <a class="btn btn-primary mb-4 w-100" th:href="@{/new}">
             Nouveau message <i class="bi bi-plus"></i>
         </a>
 
+        <!-- Liste des liens -->
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link" th:href="@{/accueilMail}">
+                <a class="nav-link d-flex justify-content-between align-items-center" th:href="@{/accueilMail}">
                     <span>Boîte de réception</span>
-                    <span th:class="${size > 0} ? 'badge bg-primary' : 'd-none'">
-                        <h6 th:text="${size}"></h6>
-                    </span>
+                    <span th:class="${size > 0} ? 'badge bg-primary' : 'd-none'" th:text="${size}"></span>
                 </a>
             </li>
             <li class="nav-item">
@@ -58,6 +60,7 @@
             </li>
         </ul>
 
+        <!-- Section utilisateur -->
         <div class="mt-5">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 th:text="${user.realname.toUpperCase()}"></h6>
@@ -69,11 +72,11 @@
 </div>
 
 <!-- Contenu principal -->
-<div style="margin:1%">
+<div style="margin-top: 60px;">
     <section layout:fragment="content1">
         <!-- Contenu de la section -->
     </section>
 </div>
-
 </body>
+
 </html>

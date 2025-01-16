@@ -2,42 +2,75 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="template">
 <head>
-    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
     <title>Messages envoyés</title>
+    <link rel="stylesheet" href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css">
+    <script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="/webjars/bootstrap-icons/1.10.5/font/bootstrap-icons.css">
+    <style>
+        .card {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header .action-buttons {
+            visibility: hidden;
+            /* Les boutons sont invisibles par défaut */
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s ease-in-out;
+        }
+
+        .card:hover .action-buttons {
+            visibility: visible; /* Les boutons deviennent visibles au survol */
+            opacity: 1;
+        }
+    </style>
 </head>
 <body>
-<div layout:fragment="content1" style="display:flex" class="container my-2">
-    <div class="container d-block" >
+<div layout:fragment="content1" >
+    <div class="container-fluid" >
         <div>  <h1>Messages envoyés</h1></div>
-        <div style="width: 100%" th:if="${messages != null}">
-            <div class="card" style="margin-top: 5px; width: 100%" th:each="message,ind : ${messages}">
+        <br>
+        <div th:if="${messages == null || messages.isEmpty()}" class="alert alert-info">
+            Aucun message envoyés.
+        </div>
 
-                <a th:href="@{/sended?id=}+${message.id}" th:class="${message.isRead}?'btn btn-outline-success':'btn btn-outline-primary'">
-                    <div class="card-header " style="display: flex; align-items: center; padding: 10px;">
+        <div class="container-fluid" th:if="${messages != null}">
+            <div class="row row-cols-1 ">
+                <div class="col" th:each="message : ${messages}">
+                    <div class="card h-100">
+                        <div  th:class="${message.isRead} ? 'card-header border-bottom-0 border-start border-secondary border-5 bg-light' : 'card-header bg-primary text-light'">
+                            <div class="d-flex"> <div class="flex-fill text-left">
+                                <span th:text="${message.sender}"></span>
+                            </div>
+                                <div class="flex-fill text-center">
+                                    <span th:text="${message.subject}"></span>
+                                </div>
+                                <div class="flex-fill text-end">
+                                    <span th:text="${message.date}"></span>
+                                </div>
 
-                        <!-- Affichage de l'expéditeur -->
-                        <div style="flex: 1; padding: 5px; white-space: nowrap;">
-                            <span th:text="${message.sender}"></span>
+                                <!-- Boutons d'action masqués par défaut -->
+                                <div class="ms-4 action-buttons">
+                                    <a class="btn btn-success btn-sm me-1" title="Ouvrir" th:href="@{/inbox/{id}(id=${message.id})}">
+                                        <i class="bi bi-book"></i>
+                                    </a>
 
+                                    <a onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce message ?')"
+                                       class="btn btn-danger btn-sm" title="Supprimer le message"
+                                       th:href="@{/delete/{id}(id=${message.id}, page=${currentPage})}">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-
-
-                        <!-- Affichage du sujet -->
-                        <div style="flex: 2; padding: 5px; white-space: nowrap;">
-                            <span th:text="${message.subject}"></span>
-                        </div>
-
-                        <!-- Affichage de la date d'envoi -->
-                        <div style="flex: 1; padding: 5px; white-space: nowrap;">
-                            <span th:text="${message.date}"></span>
-                        </div>
-
-
                     </div>
-                </a>
-
+                </div>
             </div>
-
         </div>
 
 

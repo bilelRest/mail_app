@@ -361,12 +361,15 @@ System.out.println("reply recu : "+reply);
 
         }
         mailEntity.setType(isDraft ? EmailType.BROUILLON : EmailType.ENVOYEE);
-        mailEntity.setBody(mailDetails.message);
+        mailEntity.setBody(mailDetails.getMessage());
         System.out.println(mailEntity.getBody());
 
         mailEntity.setIsRead(true);
 
         mailRepo.save(mailEntity);
+        if(isDraft){
+            return "redirect:/accueilMail";
+        }
         return "redirect:/accueilMail?sent="+sent;
     }
 
@@ -374,18 +377,39 @@ System.out.println("reply recu : "+reply);
 
     @GetMapping(value = "/setNonLu/{id}")
     public String SetNonLu(Model model, @PathVariable(value = "id" )Long id,
-                           @RequestParam(value = "page",defaultValue = "0")int page,
+                           @RequestParam(value = "page",required = false,defaultValue = "0")int page,
                            @RequestParam(value="inbox",required = false)boolean inbox) throws MessagingException {
 
         Optional<MailEntity> mail=mailRepo.findById(id);
-        if (inbox){
-            mail.get().setIsRead(true);
+        new MailEntity();
+        MailEntity mailEntity;
+
+    if (mail.isPresent()) {
+        mailEntity = mail.get();
+
+        // Afficher l'état initial
+        System.out.println("Etat initial du mail recu: " + mailEntity.getIsRead());
+
+        // Inverser l'état
+        boolean newIsRead = !mailEntity.getIsRead();
+        mailEntity.setIsRead(newIsRead);
+
+        // Afficher l'état modifié
+        System.out.println("Etat modifié à: " + mailEntity.getIsRead());
+
+        // Sauvegarder dans la base de données
+        mailRepo.saveAndFlush(mailEntity);
+
+        // Relecture pour vérification
+        Optional<MailEntity> updatedMail = mailRepo.findById(mailEntity.getId());
+        System.out.println("Etat du mail après enregistrement: " + updatedMail.get().getIsRead());
+    }
+
+    if (inbox){
             return "redirect:/inbox/"+id;
         }
         model.addAttribute("page",page);
-        if(mail.get()!=null){
-            mail.get().setIsRead(false);
-        }
+
 
         return "redirect:/accueilMail?page="+page;
     }
@@ -465,8 +489,8 @@ System.out.println("reply recu : "+reply);
         int nombreNonLu = mailRepo.countUnreadEmails(findLogged().get());
         model.addAttribute("size", nombreNonLu);
         model.addAttribute("user", findLogged().get());
-        int envoyer=0;
-        int recu=0;
+        int envoyer = 0;
+        int recu = 0;
 
         Optional<MailEntity> mail = mailRepo.findById(id);
 
@@ -475,44 +499,41 @@ System.out.println("reply recu : "+reply);
             mailEntity.setIsRead(true);
             mailRepo.save(mailEntity);
 
-            String senders=mail.get().getSender();
-            String mailSender=(mail.get().getSender()==findLogged().get().getUserid())?mail.get().getDestinataire():mail.get().getSender();
-            model.addAttribute("mailSender",mailSender);
-            model.addAttribute("idMessage",id);
-
-
+            String senders = mailEntity.getSender();
+            String mailSender = senders.equals(findLogged().get().getUserid()) ? mailEntity.getDestinataire() : senders;
+            model.addAttribute("mailSender", mailSender);
+            model.addAttribute("idMessage", id);
 
             List<MailEntity> relatedMails = mailRepo.trouverMail(senders);
-            List<MailEntity> mailEntityList2=new ArrayList<>();
+            List<MailEntity> mailEntityList2 = new ArrayList<>();
 
-
-            if(!relatedMails.isEmpty()){
-                for (MailEntity mail1:relatedMails){
-                    if (mail1.getType().equals(EmailType.ENVOYEE)||mail1.getType().equals(EmailType.RECU)){
+            if (relatedMails != null && !relatedMails.isEmpty()) {
+                for (MailEntity mail1 : relatedMails) {
+                    if (mail1.getType() == EmailType.ENVOYEE || mail1.getType() == EmailType.RECU) {
                         mailEntityList2.add(mail1);
-                        if (mail1.getType().equals(EmailType.ENVOYEE)){
-                            envoyer=envoyer+1;
-                        }if(mail1.getType().equals(EmailType.RECU)){
-                            recu=recu+1;
+                        if (mail1.getType() == EmailType.ENVOYEE) {
+                            envoyer++;
+                        } else if (mail1.getType() == EmailType.RECU) {
+                            recu++;
                         }
-
                     }
                 }
-
                 model.addAttribute("mails", mailEntityList2);
-                System.out.println("la liste n'est pas vide et sa longueur est "+relatedMails.size());}
-            else {
-                List<MailEntity> mailEntityList=new ArrayList<>();
-                mailEntityList.add(mail.get());
+                System.out.println("La liste des mails n'est pas vide. Taille : " + relatedMails.size());
+            } else {
+                List<MailEntity> mailEntityList = new ArrayList<>();
+                mailEntityList.add(mailEntity);
                 model.addAttribute("mails", mailEntityList);
-
             }
-
+        } else {
+            model.addAttribute("mails", new ArrayList<>()); // Liste vide pour éviter les erreurs Thymeleaf
         }
-        model.addAttribute("envoyer",envoyer);
-        model.addAttribute("recu",recu);
+
+        model.addAttribute("envoyer", envoyer);
+        model.addAttribute("recu", recu);
         return "Inbox";
     }
+
     @GetMapping(value = "/sended")
     public String sended(Model model, @RequestParam(value = "id", required = true) Long id) {
         // Compte les emails non lus
