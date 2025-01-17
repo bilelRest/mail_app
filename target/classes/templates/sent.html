@@ -56,7 +56,7 @@
 
                                 <!-- Boutons d'action masqués par défaut -->
                                 <div class="ms-4 action-buttons">
-                                    <a class="btn btn-success btn-sm me-1" title="Ouvrir" th:href="@{/inbox/{id}(id=${message.id})}">
+                                    <a class="btn btn-success btn-sm me-1" title="Ouvrir" th:href="@{/inbox/{id}(id=${message.id},sent=true)}">
                                         <i class="bi bi-book"></i>
                                     </a>
 

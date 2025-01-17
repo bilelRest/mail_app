@@ -40,6 +40,12 @@
             Aucun message .
         </div>
 
+
+        <div th:if="${status!=''}" th:class="${success ? 'alert alert-success' : 'alert alert-warning'}" role="alert">
+            <h5 th:text="${status}" class="mb-0"></h5>
+        </div>
+
+
         <div class="container-fluid" th:if="${messages != null}">
             <div class="row row-cols-1 ">
                 <div class="col" th:each="message : ${messages}">

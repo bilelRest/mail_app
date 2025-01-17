@@ -260,7 +260,14 @@ public class Admin {
     }
 
     @GetMapping(value = "/recycle")
-    public String recycleMail(Model model) {
+    public String recycleMail(Model model,@RequestParam(value = "status",required = false)String  status) {
+
+boolean success=Objects.equals(status,"true");
+model.addAttribute("success",success);
+
+           String msg= Objects.equals(status, "true") ?"Message supprimé avec success.":(Objects.equals(status, "true") ?"Erreur lors de suppression du message":"") ;
+        model.addAttribute("status",msg);
+
         List<MailEntity> mailEntityList2 = mailRepo.findAllByMailUser(findLogged().get());
         List<MailEntity> mailEntityList = new ArrayList<>();
         for (MailEntity mail : mailEntityList2) {
@@ -464,6 +471,7 @@ System.out.println("reply recu : "+reply);
     public String deleteFromServer(Model model, @RequestParam(value = "id", required = true) Long id) {
         Optional<MailEntity> mail = mailRepo.findById(id);
         Optional<Users> loggedUser = findLogged();
+        boolean status=false;
 
         if (mail.isPresent() && loggedUser.isPresent()) {
             MailEntity mailEntity = mail.get();
@@ -473,6 +481,7 @@ System.out.println("reply recu : "+reply);
                 if(!mail.get().getDeleteFtpPath().isEmpty()){
                     ftpService.deleteFile(mail.get().getDeleteFtpPath());}
                 mailRepo.delete(mailEntity);
+                status=true;
             } catch (Exception e) {
                 e.printStackTrace();
                 // Ajouter un retour ou une notification à l'utilisateur en cas d'erreur
@@ -483,7 +492,7 @@ System.out.println("reply recu : "+reply);
             model.addAttribute("error", "Message ou utilisateur introuvable.");
         }
 
-        return "redirect:/recycle";
+        return "redirect:/recycle?status="+status;
     }
 
     @GetMapping(value = "/inbox/{id}")
