@@ -271,6 +271,7 @@ public class Admin {
         int nombreNonLu = mailRepo.countUnreadEmails(findLogged().get());
         model.addAttribute("size", nombreNonLu);
         model.addAttribute("user", findLogged().get());
+        model.addAttribute("trashSize",mailEntityList.size());
         model.addAttribute("messages", mailEntityList.stream()
                 .sorted((m1, m2) -> Long.compare(m2.getId(), m1.getId()))
                 .collect(Collectors.toList()));
@@ -465,12 +466,13 @@ System.out.println("reply recu : "+reply);
         Optional<Users> loggedUser = findLogged();
 
         if (mail.isPresent() && loggedUser.isPresent()) {
-            Users user = loggedUser.get();
             MailEntity mailEntity = mail.get();
 
             try {
-                if(!mail.get().getDeleteFtpPath().isEmpty())
-                    ftpService.deleteFile(mail.get().getDeleteFtpPath());
+
+                if(!mail.get().getDeleteFtpPath().isEmpty()){
+                    ftpService.deleteFile(mail.get().getDeleteFtpPath());}
+                mailRepo.delete(mailEntity);
             } catch (Exception e) {
                 e.printStackTrace();
                 // Ajouter un retour ou une notification à l'utilisateur en cas d'erreur
@@ -481,23 +483,38 @@ System.out.println("reply recu : "+reply);
             model.addAttribute("error", "Message ou utilisateur introuvable.");
         }
 
-        return "redirect:/accueilMail";
+        return "redirect:/recycle";
     }
 
     @GetMapping(value = "/inbox/{id}")
-    public String inboxById(Model model, @PathVariable Long id) throws MessagingException {
+    public String inboxById(Model model, @PathVariable Long id,
+                            @RequestParam(value = "accueil",defaultValue = "false",required = false)boolean accueil,
+                            @RequestParam(value = "sent",defaultValue = "false",required = false)boolean sent,
+                            @RequestParam(value = "trash",required = false,defaultValue = "false")boolean trash) throws MessagingException {
         int nombreNonLu = mailRepo.countUnreadEmails(findLogged().get());
         model.addAttribute("size", nombreNonLu);
         model.addAttribute("user", findLogged().get());
         int envoyer = 0;
         int recu = 0;
+        model.addAttribute("sent",sent);
+        model.addAttribute("trash",trash);
 
         Optional<MailEntity> mail = mailRepo.findById(id);
+        MailEntity mailEntity2 = new MailEntity();
+        model.addAttribute("mailEntity",mailEntity2);
 
         if (mail.isPresent()) {
             MailEntity mailEntity = mail.get();
-            mailEntity.setIsRead(true);
-            mailRepo.save(mailEntity);
+            if (trash){
+                model.addAttribute("mailEntity",mailEntity);
+
+                return "inbox";
+            }
+            if(accueil) {
+                mailEntity.setIsRead(true);
+                mailRepo.save(mailEntity);
+            }
+
 
             String senders = mailEntity.getSender();
             String mailSender = senders.equals(findLogged().get().getUserid()) ? mailEntity.getDestinataire() : senders;

@@ -60,6 +60,7 @@
                                         <i class="bi bi-book"></i>
                                     </a>
 
+
                                     <a onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce message ?')"
                                        class="btn btn-danger btn-sm" title="Supprimer le message"
                                        th:href="@{/delete/{id}(id=${message.id}, page=${currentPage})}">
