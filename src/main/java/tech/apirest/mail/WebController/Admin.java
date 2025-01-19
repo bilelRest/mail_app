@@ -557,7 +557,7 @@ System.out.println("reply recu : "+reply);
 
         model.addAttribute("envoyer", envoyer);
         model.addAttribute("recu", recu);
-        return "Inbox";
+        return "inbox";
     }
 
     @GetMapping(value = "/sended")
