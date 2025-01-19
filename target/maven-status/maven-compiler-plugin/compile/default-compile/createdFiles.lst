@@ -6,6 +6,7 @@ tech\apirest\mail\Config\SecurityConfig.class
 tech\apirest\mail\WebController\Admin.class
 tech\apirest\mail\serviceMail\ImapMail.class
 tech\apirest\mail\Repo\TransportRepo.class
+tech\apirest\mail\serviceMail\FtpService.class
 tech\apirest\mail\serviceMail\EmailController.class
 tech\apirest\mail\serviceMail\EmailService.class
 tech\apirest\mail\Services\UsersInterfaceImpl.class
@@ -20,5 +21,6 @@ tech\apirest\mail\Repo\MailRepo.class
 tech\apirest\mail\Repo\VirtualRepo.class
 tech\apirest\mail\Entity\Transport.class
 tech\apirest\mail\Entity\MailEntity.class
+tech\apirest\mail\serviceMail\EmailUtils.class
 tech\apirest\mail\Services\TransportInterfaceImpl.class
 tech\apirest\mail\Services\VirtualInterfaceImpl.class

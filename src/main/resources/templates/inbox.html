@@ -67,7 +67,7 @@
                          mailEntity.joinedName != null && !mailEntity.joinedName.isEmpty()}">
                     <p><strong>Pièce jointe :</strong></p>
                     <a th:href="${mailEntity.pathJoined}"
-                       th:text="${mailEntity.nameJointe}"
+                       th:text="${mailEntity.joinedName}"
                        class="btn btn-link"
                        target="_blank">
                     </a>
@@ -79,7 +79,7 @@
 
                 <!-- Message si aucune pièce jointe -->
                 <div th:if="${mailEntity.pathJoined == null || mailEntity.pathJoined.isEmpty() ||
-                         mailEntity.nameJointe == null || mailEntity.nameJointe.isEmpty()}">
+                         mailEntity.joinedName == null || mailEntity.joinedName.isEmpty()}">
                     <p class="text-muted">Aucune pièce jointe.</p>
                 </div>
 
