@@ -517,7 +517,7 @@ System.out.println("reply recu : "+reply);
             if (trash){
                 model.addAttribute("mailEntity",mailEntity);
 
-                return "Inbox";
+                return "inbox";
             }
             if(accueil) {
                 mailEntity.setIsRead(true);
@@ -557,7 +557,7 @@ System.out.println("reply recu : "+reply);
 
         model.addAttribute("envoyer", envoyer);
         model.addAttribute("recu", recu);
-        return "Inbox";
+        return "inbox";
     }
 
     @GetMapping(value = "/sended")
