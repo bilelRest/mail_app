@@ -3,8 +3,15 @@ package tech.apirest.mail.WebController;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperPrint;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +26,7 @@ import tech.apirest.mail.Repo.MailRepo;
 import tech.apirest.mail.Repo.TransportRepo;
 import tech.apirest.mail.Repo.UsersRepo;
 import tech.apirest.mail.Repo.VirtualRepo;
+import tech.apirest.mail.reports.Reporter;
 import tech.apirest.mail.serviceMail.EmailController;
 import tech.apirest.mail.serviceMail.FtpService;
 import tech.apirest.mail.serviceMail.ImapMail;
@@ -28,6 +36,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -45,7 +55,9 @@ public class Admin {
     private ImapMail imapMail;
     private FtpService ftpService;
 
-    public Admin(TransportRepo transportRepo, VirtualRepo virtualRepo, UsersRepo usersRepo, MailRepo mailRepo, EmailController emailController, ImapMail imapMail, FtpService ftpService) {
+    private Reporter reporter;
+
+    public Admin(TransportRepo transportRepo, VirtualRepo virtualRepo, UsersRepo usersRepo, MailRepo mailRepo, EmailController emailController, ImapMail imapMail, FtpService ftpService, Reporter reporter) {
         this.transportRepo = transportRepo;
         this.virtualRepo = virtualRepo;
         this.usersRepo = usersRepo;
@@ -53,6 +65,7 @@ public class Admin {
         this.emailController = emailController;
         this.imapMail = imapMail;
         this.ftpService = ftpService;
+        this.reporter = reporter;
     }
 
     public Optional<Users> findLogged() {
@@ -129,6 +142,74 @@ public class Admin {
 
         return "redirect:/login";
     }
+    public String cleanHtml(String html) {
+        html = html.replaceAll("(?i)\\s*style\\s*=\\s*\"[^\"]*\"", "");
+
+        html = html.replaceAll("(?i)</?h[1-6]>", "<p>");
+
+        html = html.replaceAll("(?i)<p>", "<p style=\"font-family: Arial, sans-serif; font-size: 12px; color: #000000;\">");
+        html = html.replaceAll("(?i)<span>", "<span style=\"font-family: Arial, sans-serif; font-size: 12px; color: #000000;\">");
+return html;
+    }
+
+
+    @GetMapping(value = "/print", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> print(Model model,@RequestParam(value = "id",required = false)Long id) throws JRException, FileNotFoundException {
+        byte[] report = null;
+        Map<String, Object> map = new HashMap<>();
+        List<MailEntity> mailEntityList2=new ArrayList<>();
+        if(id!=null){
+            Optional<MailEntity> mail= mailRepo.findById(id);
+
+            if(mail.isPresent()){
+                MailEntity mailEntity=mail.get();
+                System.out.println(mailEntity);
+                if (mailEntity.getType()==EmailType.RECU){
+                    mailEntity.setDestinataire(findLogged().get().getUserid());
+                }
+                mailEntity.setBody(cleanHtml(mailEntity.getBody()));
+                mailEntityList2.add(mailEntity);
+            }
+        }
+
+//        // Récupération des emails depuis l'IMAP et comparaison avec la base de données
+//        List<MailEntity> mailEntityListImap = imapMail.readEmails(findLogged().get().getUserid(), findLogged().get().getTt(), null);
+//
+//        if (mailEntityListImap != null && !mailEntityListImap.isEmpty()) {
+//            List<MailEntity> mailEntityList1 = new ArrayList<>();
+//            Set<MailEntity> existingMails = new HashSet<>(mailRepo.findAllByMailUser(findLogged().get()));
+//
+//            for (MailEntity mail : mailEntityListImap) {
+//                if (!existingMails.contains(mail)) {
+//                    mailEntityList1.add(mail);
+//                }
+//            }
+//            mailRepo.saveAll(mailEntityList1);
+//        }
+//
+//        // Pagination des emails pour le rapport
+//        Page<MailEntity> mailEntityList2 = null;
+//        if (!findLogged().isEmpty()) {
+//            mailEntityList2 = mailRepo.getBypageable(findLogged().get(), EmailType.RECU, PageRequest.of(0, 10));
+//            System.out.println("Liste dans print trouver est de taille = " + mailEntityList2.getContent().size());
+//        }
+
+        // Génération du rapport si les données existent
+        if (mailEntityList2 != null && !mailEntityList2.isEmpty()) {
+            report = reporter.reports(map, mailEntityList2);
+        } else {
+            throw new FileNotFoundException("Aucune donnée trouvée pour générer le rapport.");
+        }
+
+        // Retourner le PDF comme réponse HTTP
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.inline().filename("report.pdf").build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(report);
+    }
 
 
     @GetMapping(value = "/accueilMail")
@@ -136,10 +217,11 @@ public class Admin {
                               @RequestParam(value = "keyword",defaultValue = "")String keyword,
                               @RequestParam(value = "page",defaultValue = "0")int page,
                               @RequestParam(value = "size",defaultValue = "10")int size,
-                              @RequestParam(value = "sent",defaultValue = "",required = false)String sent) throws MessagingException, IOException {
+                              @RequestParam(value = "sent",defaultValue = "",required = false)String sent) throws MessagingException, IOException, JRException {
         model.addAttribute("user", findLogged().get());
         model.addAttribute("sent",sent);
         System.out.println("Valeur recu de sent "+sent);
+        byte[] report;
 
          List<MailEntity> mailEntityListImap=imapMail.readEmails(findLogged().get().getUserid(),findLogged().get().getTt(),null);
         if (!mailEntityListImap.isEmpty()){
@@ -177,8 +259,11 @@ public class Admin {
 //            }
 //        }
 
-
+Map<String,Object> map=new HashMap<>();
         model.addAttribute("messages", mailEntityList2);
+        report=reporter.reports(map,mailEntityList2.stream().toList());
+        model.addAttribute("report",report);
+
 
         return "accueilMail";
     }

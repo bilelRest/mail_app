@@ -48,7 +48,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/home", "/CreateAccount","/createMail","/webjars/**", "/css/**", "/js/**").permitAll() // Ressources accessibles sans authentification
+                .antMatchers("/home", "http://jasperreports.sourceforge.net/*","/CreateAccount","/createMail","/webjars/**", "/css/**", "/js/**").permitAll() // Ressources accessibles sans authentification
                 .anyRequest().authenticated() // Authentification requise pour toutes les autres requêtes
                 .and()
                 .formLogin()

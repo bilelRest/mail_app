@@ -15,6 +15,7 @@ D:\MailAPP\mail\mail\src\main\java\tech\apirest\mail\Services\UsersInterface.jav
 D:\MailAPP\mail\mail\src\main\java\tech\apirest\mail\Entity\EmailType.java
 D:\MailAPP\mail\mail\src\main\java\tech\apirest\mail\Entity\Transport.java
 D:\MailAPP\mail\mail\src\main\java\tech\apirest\mail\Repo\MailRepo.java
+D:\MailAPP\mail\mail\src\main\java\tech\apirest\mail\reports\Reporter.java
 D:\MailAPP\mail\mail\src\main\java\tech\apirest\mail\Repo\TransportRepo.java
 D:\MailAPP\mail\mail\src\main\java\tech\apirest\mail\Config\SecurityConfig.java
 D:\MailAPP\mail\mail\src\main\java\tech\apirest\mail\Services\TransportInterface.java

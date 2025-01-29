@@ -28,6 +28,14 @@
 			<artifactId>postgresql</artifactId>
 			<version>42.2.16</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/net.sf.jasperreports/jasperreports-spring -->
+		<dependency>
+			<groupId>net.sf.jasperreports</groupId>
+			<artifactId>jasperreports</artifactId>
+			<version>6.18.1</version> <!-- ou la version que vous utilisez -->
+		</dependency>
+
+
 
 		<!-- Spring Boot Data JPA -->
 		<dependency>
