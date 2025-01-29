@@ -34,7 +34,18 @@
 			<artifactId>jasperreports</artifactId>
 			<version>6.18.1</version> <!-- ou la version que vous utilisez -->
 		</dependency>
+		<dependency>
+			<groupId>com.lowagie</groupId>
+			<artifactId>itext</artifactId>
+			<version>2.1.7</version> <!-- Version compatible -->
+		</dependency>
 
+		<!-- Fonts spécifiques pour JasperReports -->
+		<dependency>
+			<groupId>net.sf.jasperreports</groupId>
+			<artifactId>jasperreports-fonts</artifactId>
+			<version>6.20.0</version>
+		</dependency>
 
 
 		<!-- Spring Boot Data JPA -->
