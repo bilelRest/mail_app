@@ -1,7 +1,7 @@
 FROM openjdk:17-jdk-alpine
 
-# Installer maven, les polices nécessaires et fontconfig
-RUN apk add --no-cache maven ttf-freefont fontconfig ttf-mscorefonts-installer
+# Installer maven et les polices nécessaires
+RUN apk add --no-cache maven ttf-freefont fontconfig
 
 # Ajouter les fichiers nécessaires
 COPY pom.xml .
