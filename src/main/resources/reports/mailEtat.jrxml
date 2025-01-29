@@ -131,9 +131,9 @@
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="444" splitType="Stretch">
+		<band height="398" splitType="Stretch">
 			<textField>
-				<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="555" height="390" uuid="1ad68406-d661-4a40-b0b0-9c73547305c9">
+				<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="555" height="360" uuid="1ad68406-d661-4a40-b0b0-9c73547305c9">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="1dc4fed4-cc97-404d-87af-9d5a4f6b6e7f"/>
 				</reportElement>
 				<box>
@@ -150,12 +150,31 @@
 		</band>
 	</detail>
 	<columnFooter>
-		<band height="15" splitType="Stretch"/>
+		<band splitType="Stretch"/>
 	</columnFooter>
 	<pageFooter>
-		<band height="19" splitType="Stretch"/>
+		<band height="99" splitType="Stretch">
+			<textField>
+				<reportElement x="370" y="29" width="100" height="70" uuid="c3b10648-6daa-4e61-86b1-c0dc6f46db1d"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField pattern="HH:mm">
+				<reportElement x="247" y="29" width="100" height="70" uuid="e8e2f622-b1c7-4a4f-8b1e-bc347413fab1"/>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField pattern="MMMMM dd, yyyy">
+				<reportElement x="20" y="29" width="100" height="70" uuid="bd7302d2-b8f9-452c-88b4-a892d10d30b0"/>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="470" y="29" width="100" height="70" uuid="6fae990f-9ca4-496d-872b-8b59e021b2db"/>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[" of " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
 	</pageFooter>
 	<summary>
-		<band height="9" splitType="Stretch"/>
+		<band height="7" splitType="Stretch"/>
 	</summary>
 </jasperReport>
